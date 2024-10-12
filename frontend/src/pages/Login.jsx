@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import { useEffect, useState } from "react";
 import { Alert, Button, Label, TextInput } from 'flowbite-react';
 
@@ -49,7 +48,13 @@ const Login = () => {
     }, []);
 
     return (
-        <div className="flex flex-col justify-center items-center min-h-screen bg-slate-950 text-white">
+        <div
+            className="flex flex-col justify-center items-center min-h-screen"
+            style={{
+                backgroundImage: 'linear-gradient(to bottom right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
+                backgroundColor: '#1f2937', // Fallback color for older browsers
+            }}
+        >
             <h1 className="text-3xl font-bold mb-4 animate-slide-down text-green-400">Login with UPI ID</h1>
 
             <div className="w-full min-w-5xl flex justify-center">

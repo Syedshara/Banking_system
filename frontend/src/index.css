@@ -73,3 +73,6 @@
 .fade-in {
   opacity: 1;
 }
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Adjust values for desired shadow effect */
+}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Label, TextInput } from 'flowbite-react';
+import img from '../assets/Register/bg-img.jpg'
 
 const Register = () => {
     const [step, setStep] = useState(1);
@@ -86,13 +87,24 @@ const Register = () => {
     };
 
     return (
-        <div className="flex flex-col justify-center items-center min-h-screen bg-slate-950 text-white">
-            <h1 className="text-3xl font-bold mb-4 text-green-400">Register as New User</h1>
+        <div className="flex flex-col justify-center ml-44 items-start min-h-screen text-white"
+        >
+            <div
+                className="absolute inset-0 bg-cover bg-center -z-50"
+                style={{
+                    backgroundImage: `url(${img})`, // Replace with your image URL
+                    opacity: 0.8,
+                }}
+            />
+            <div
+                className="absolute inset-0 -z-40 bg-slate-950 opacity-70" // Adjust opacity for shade effect
+            />
+            <h1 className="text-3xl z-40 font-bold mb-4 text-green-400">Register as New User</h1>
 
             <form className='w-full max-w-lg flex flex-col gap-5 mt-5' onSubmit={step === 3 ? handleRegister : (e) => { e.preventDefault(); handleNext(); }}>
                 {step === 1 && (
                     <>
-                        <h2 className="text-xl font-semibold mb-2">Personal Details</h2>
+                        <h2 className="text-xl text-white font-semibold mb-2">Personal Details</h2>
                         <Label htmlFor="fullName" className="text-slate-100 text-md font-semibold">Full Name:</Label>
                         <TextInput type="text" id="fullName" placeholder="Enter your full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
 
@@ -111,11 +123,11 @@ const Register = () => {
                             <Label className="text-slate-100 text-md font-semibold">Select Account or Card:</Label>
                             <div className="flex justify-between">
                                 <label className="flex items-center">
-                                    <input type="radio" checked={isAccount} onChange={() => setIsAccount(true)} />
+                                    <input type="radio" checked={isAccount} className="mr-2" onChange={() => setIsAccount(true)} />
                                     Account
                                 </label>
                                 <label className="flex items-center">
-                                    <input type="radio" checked={!isAccount} onChange={() => setIsAccount(false)} />
+                                    <input type="radio" checked={!isAccount} className="mr-2" onChange={() => setIsAccount(false)} />
                                     Card
                                 </label>
                             </div>
