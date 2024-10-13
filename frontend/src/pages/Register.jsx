@@ -92,9 +92,9 @@ const Register = () => {
             <div
                 className="absolute inset-0 bg-cover bg-center -z-50"
                 style={{
-                    backgroundImage: "url('https://bl-i.thgim.com/public/news/x8nrq7/article67647263.ece/alternates/LANDSCAPE_1200/BL1812_Gavel_Second.jpg')", // Replace with your image URL
+                    backgroundImage: `url(${img})`, // Replace with your image URL
                     opacity: 0.8,
-                    transform: "scaleX(-1)",
+
 
                 }}
             />
