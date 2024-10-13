@@ -87,19 +87,21 @@ const Register = () => {
     };
 
     return (
-        <div className="flex flex-col justify-center ml-44 items-start min-h-screen text-white"
+        <div className="flex flex-col justify-center ml-36 items-start min-h-screen text-white"
         >
             <div
                 className="absolute inset-0 bg-cover bg-center -z-50"
                 style={{
-                    backgroundImage: `url(${img})`, // Replace with your image URL
+                    backgroundImage: "url('https://bl-i.thgim.com/public/news/x8nrq7/article67647263.ece/alternates/LANDSCAPE_1200/BL1812_Gavel_Second.jpg')", // Replace with your image URL
                     opacity: 0.8,
+                    transform: "scaleX(-1)",
+
                 }}
             />
             <div
                 className="absolute inset-0 -z-40 bg-slate-950 opacity-70" // Adjust opacity for shade effect
             />
-            <h1 className="text-3xl z-40 font-bold mb-4 text-green-400">Register as New User</h1>
+            <h1 className="text-3xl z-40  font-bold mb-4 text-green-400">Register as New User</h1>
 
             <form className='w-full max-w-lg flex flex-col gap-5 mt-5' onSubmit={step === 3 ? handleRegister : (e) => { e.preventDefault(); handleNext(); }}>
                 {step === 1 && (
