@@ -1,21 +1,36 @@
 // src/App.jsx
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Entry from "./pages/Entry";
-import MainPage from "./pages/MainPage";
+import DashBoard from "./pages/DashBoard";
+import Nav from "./component/Nav";
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+
+  // List of routes where Nav should be hidden
+  const hideNavRoutes = ["/login", "/register", "/"];
+
   return (
-    <BrowserRouter>
+    <>
+      {/* Conditionally render Nav based on the route */}
+      {!hideNavRoutes.includes(location.pathname) && <Nav />}
 
       <Routes>
         <Route path="/" element={<Entry />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/main" element={<MainPage />} />
+        <Route path="/siderbar" element={<DashBoard />} />
       </Routes>
+    </>
+  );
+}
 
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
