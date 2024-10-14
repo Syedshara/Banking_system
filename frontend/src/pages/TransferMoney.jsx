@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { Button, Card, Label, TextInput, Radio } from 'flowbite-react';
+import React, { useState, useRef } from 'react';
+import { Button, Card, Label, TextInput } from 'flowbite-react';
 
 const TransferMoney = () => {
     const [paymentMethod, setPaymentMethod] = useState('');
     const [receiverDetails, setReceiverDetails] = useState('');
     const [amount, setAmount] = useState('');
+    const [reason, setReason] = useState('');
     const [pin, setPin] = useState(Array(6).fill('')); // For 6-digit pin entry
     const [currentScreen, setCurrentScreen] = useState(1); // For screen control
     const [successMessage, setSuccessMessage] = useState('');
+
+    // To reference each input field for auto-focus
+    const pinRefs = useRef([]);
 
     const handlePaymentSubmit = (e) => {
         e.preventDefault();
@@ -16,15 +20,38 @@ const TransferMoney = () => {
 
     const handlePinChange = (e, index) => {
         const newPin = [...pin];
-        newPin[index] = e.target.value;
-        setPin(newPin);
+        const { value, key } = e.target;
+
+        // Allow only numeric inputs
+        if (/^[0-9]?$/.test(value)) {
+            newPin[index] = value;
+            setPin(newPin);
+
+            // Automatically focus on the next input
+            if (value && index < 5) {
+                pinRefs.current[index + 1].focus();
+            }
+        }
+
+        // Move back to the previous input when Backspace is pressed in an empty input
+        if (key === 'Backspace' && !newPin[index] && index > 0) {
+            pinRefs.current[index - 1].focus();
+        }
+    };
+
+    const handleKeyDown = (e, index) => {
+        const { key } = e;
+
+        // Move back to the previous input when Backspace is pressed in an empty input
+        if (key === 'Backspace' && pin[index] === '' && index > 0) {
+            pinRefs.current[index - 1].focus();
+        }
     };
 
     const handlePinSubmit = (e) => {
         e.preventDefault();
         if (pin.join('').length === 6) {
             setSuccessMessage('Transaction successful!');
-            // Reset form or perform further actions as needed
             setCurrentScreen(3);
         } else {
             alert('Please enter a valid 6-digit PIN.');
@@ -40,34 +67,18 @@ const TransferMoney = () => {
                     <form onSubmit={handlePaymentSubmit}>
                         <div className="mb-4">
                             <Label htmlFor="paymentMethod" value="Choose Payment Method" />
-                            <div className="flex gap-2">
-                                <Radio
-                                    id="upi"
-                                    name="paymentMethod"
-                                    value="UPI"
-                                    checked={paymentMethod === 'UPI'}
-                                    onChange={() => setPaymentMethod('UPI')}
-                                />
-                                <Label htmlFor="upi">UPI ID</Label>
-
-                                <Radio
-                                    id="account"
-                                    name="paymentMethod"
-                                    value="Account"
-                                    checked={paymentMethod === 'Account'}
-                                    onChange={() => setPaymentMethod('Account')}
-                                />
-                                <Label htmlFor="account">Account</Label>
-
-                                <Radio
-                                    id="card"
-                                    name="paymentMethod"
-                                    value="Card"
-                                    checked={paymentMethod === 'Card'}
-                                    onChange={() => setPaymentMethod('Card')}
-                                />
-                                <Label htmlFor="card">Card</Label>
-                            </div>
+                            <select
+                                id="paymentMethod"
+                                value={paymentMethod}
+                                onChange={(e) => setPaymentMethod(e.target.value)}
+                                className="w-full p-2 mt-2 border border-gray-300 rounded"
+                                required
+                            >
+                                <option value="">Select a method</option>
+                                <option value="UPI">UPI ID</option>
+                                <option value="Account">Account</option>
+                                <option value="Card">Card</option>
+                            </select>
                         </div>
 
                         {/* Receiver Details */}
@@ -96,6 +107,26 @@ const TransferMoney = () => {
                             />
                         </div>
 
+                        {/* Reason for Transaction */}
+                        <div className="mb-4">
+                            <Label htmlFor="reason" value="Reason for Transaction" />
+                            <select
+                                id="reason"
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                className="w-full p-2 mt-2 border border-gray-300 rounded"
+                                required
+                            >
+                                <option value="">Select a reason</option>
+                                <option value="Payment for Services">Payment for Services</option>
+                                <option value="Loan Repayment">Loan Repayment</option>
+                                <option value="Gift">Gift</option>
+                                <option value="Charity">Charity</option>
+                                <option value="Rent Payment">Rent Payment</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
                         <Button type="submit" gradientDuoTone="greenToBlue">
                             Pay / Send
                         </Button>
@@ -117,7 +148,9 @@ const TransferMoney = () => {
                                         className="w-12 text-center text-lg"
                                         value={pin[index]}
                                         onChange={(e) => handlePinChange(e, index)}
+                                        onKeyDown={(e) => handleKeyDown(e, index)}
                                         required
+                                        ref={(el) => (pinRefs.current[index] = el)} // Assign ref to each input
                                     />
                                 ))}
                             </div>
