@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Label, TextInput } from 'flowbite-react';
+import { useNavigate } from 'react-router-dom';
 import img from '../assets/Register/bg-img.jpg'
 
 const Register = () => {
@@ -16,6 +17,8 @@ const Register = () => {
     const [confirmPin, setConfirmPin] = useState(Array(6).fill(""));
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
 
     // Validation functions
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -137,6 +140,7 @@ const Register = () => {
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));
             console.log("Registration successful!");
+            navigate('/main.jsx');
         } catch (err) {
             setError("Registration failed. Please try again.");
         } finally {
