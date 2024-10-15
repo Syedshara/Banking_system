@@ -66,6 +66,7 @@ export const getUsers = async (req, res) => {
         }
 
         res.status(200).json({ message: 'Login successful!', userId: user._id });
+        
     } catch (err) {
         res.status(500).json({ error: 'Failed to login', details: err.message });
     }

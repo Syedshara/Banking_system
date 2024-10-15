@@ -36,6 +36,7 @@ export const getLenders = async (req, res) => {
             lenders.map(async (lender) => {
                 const user = await User.findById(lender.user_id).select('name');
                 return {
+                    lending_id: lender._id,
                     lender_id: lender.user_id,
                     amount: lender.amount,
                     interest_range: `${lender.min_interest}-${lender.max_interest}%`,
@@ -54,8 +55,8 @@ export const getLenders = async (req, res) => {
 export const addRequest = async (req, res) => {
     try{
 
-        const {lender_id, borrower_id, amount} = req.body;
-        const transaction = new Transaction({lender_id, borrower_id, amount, transaction_status:"requested"});
+        const {lending_id,lender_id, borrower_id, amount} = req.body;
+        const transaction = new Transaction({lending_id,lender_id, borrower_id, amount, transaction_status:"requested"});
         await transaction.save();
         res.status(201).json(transaction);
 
