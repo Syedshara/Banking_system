@@ -1,20 +1,21 @@
 import { Avatar, Dropdown, Navbar } from "flowbite-react";
 import React, { useEffect, useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import img from '../assets/profile/user.png';
 
 const Nav = () => {
-    const [userData, setUserData] = useState({ name: "", upi_id: "" }); // State to store user data
-    const [loading, setLoading] = useState(true); // Loading state
+    const [userData, setUserData] = useState({ name: "", upi_id: "" });
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-    // Fetch user details from the backend using the stored user_id
     useEffect(() => {
-        const userId = localStorage.getItem("userId"); // Get user_id from localStorage
+        const userId = localStorage.getItem("user_id");
         if (userId) {
-            fetch(`http://10.16.58.118:3000/users/${userId}`) // Replace with your actual API endpoint
+            fetch(`http://localhost:3000/users/${userId}`)
                 .then(response => response.json())
                 .then(data => {
-                    setUserData({ name: data.name, upi_id: data.upi_id });
+                    console.log(data);
+                    setUserData({ name: data.name, upi_id: data.bank_details.upi_id });
                     setLoading(false);
                 })
                 .catch((error) => {
@@ -23,6 +24,11 @@ const Nav = () => {
                 });
         }
     }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem("user_id"); // Remove user_id from local storage
+        navigate('/'); // Redirect to home page
+    };
 
     return (
         <Navbar fluid rounded>
@@ -38,7 +44,7 @@ const Nav = () => {
 
             <div className="flex md:order-2">
                 {loading ? (
-                    <span>Loading...</span> // Display a loading state
+                    <span>Loading...</span>
                 ) : (
                     <Dropdown
                         arrowIcon={false}
@@ -53,7 +59,7 @@ const Nav = () => {
                         </Dropdown.Header>
 
                         <Dropdown.Divider />
-                        <Dropdown.Item>Sign out</Dropdown.Item>
+                        <Dropdown.Item onClick={handleLogout}>Sign out</Dropdown.Item>
                     </Dropdown>
                 )}
 

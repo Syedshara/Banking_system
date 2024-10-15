@@ -6,7 +6,7 @@ export const getuser = async (req, res, next) => {
 
     try {
         // Find the user by ID
-        const user = await User.findOne({ "user_id": userId });
+        const user = await User.findById(userId); // Pass userId directly
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -22,5 +22,3 @@ export const getuser = async (req, res, next) => {
         res.status(500).json({ message: "Server error" });
     }
 };
-
-

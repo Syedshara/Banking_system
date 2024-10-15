@@ -52,7 +52,7 @@ const Login = () => {
             const data = await response.json();
 
             if (response.ok) {
-                console.log("Login successful with UPI ID:", data);
+                console.log("Login successful with UPI ID:", data.userId);
                 localStorage.setItem("user_id", data.userId);
                 navigate("/main");
             } else {
