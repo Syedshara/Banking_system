@@ -186,13 +186,11 @@ const Register = () => {
                         </Button>
                     )}
                     {step === 3 ? (
-                        <Button type="submit" color="green
-
-" isLoading={loading} disabled={loading}>
+                        <Button type="submit" gradientDuoTone="greenToBlue" isLoading={loading} disabled={loading}>
                             Register
                         </Button>
                     ) : (
-                        <Button type="submit" color="green">
+                        <Button type="submit" className="bg-black" gradientDuoTone="greenToBlue" >
                             Next
                         </Button>
                     )}
