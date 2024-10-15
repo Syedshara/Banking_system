@@ -33,14 +33,14 @@ const Register = () => {
             const updatedPin = [...pinArray];
             updatedPin[index] = value;
             setPinFunc(updatedPin);
-    
+
             if (value !== "" && index < 5) {
                 const nextInput = pinArray === pin ? `pin-${index + 1}` : `confirmPin-${index + 1}`;
                 document.getElementById(nextInput)?.focus();
             }
         }
     };
-    
+
 
     const handlePinDelete = (index, setPinFunc, pinArray) => {
         const updatedPin = [...pinArray];
@@ -52,7 +52,7 @@ const Register = () => {
             setPinFunc(updatedPin);
         }
     };
-    
+
 
     const handleNext = () => {
         // Step 1 validation (Personal Details)
@@ -126,28 +126,39 @@ const Register = () => {
         setLoading(true);
 
         const userData = {
-            fullName,
+            name: fullName,
             email,
-            phoneNumber,
-            accountNumber,
-            ifscNumber,
-            bankName,
-            upiId,
+            phone: phoneNumber,
+            acc_number: accountNumber,
+            IFSC: ifscNumber,
+            upi_id: upiId,
             pin: pin.join(""),
         };
 
         console.log("Registering user with data:", userData);
+
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            console.log("Registration successful!");
-            navigate('/main.jsx');
+            const response = await fetch('http://localhost:3000/auth/register', { // Make sure to include http://
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData),
+            });
+
+            if (!response.ok) {
+                throw new Error('Registration failed. Please try again.');
+            }
+
+            const data = await response.json();
+            console.log("Registration successful!", data);
+            navigate('/main');
         } catch (err) {
-            setError("Registration failed. Please try again.");
+            setError(err.message);
         } finally {
             setLoading(false);
         }
     };
-
     return (
         <div className="flex flex-col justify-center ml-36 items-start min-h-screen text-white">
             <div
@@ -240,7 +251,7 @@ const Register = () => {
 
 
                 {error && <Alert color="failure" className="mb-2"><span>{error}</span></Alert>}
-                
+
                 <div className="flex justify-between">
                     <Button color="gray" onClick={handleBack} disabled={step === 1}>Back</Button>
                     {step === 3 ? <Button type="submit" isProcessing={loading} gradientDuoTone="greenToBlue">Register</Button> : <Button type="submit" gradientDuoTone="greenToBlue">Next</Button>}

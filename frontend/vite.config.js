@@ -5,8 +5,15 @@ import react from '@vitejs/plugin-react-swc'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // This will expose the server on your local network
+    host: true,
+    proxy: {
+      '/auth': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },// This will expose the server on your local network
   },
+
 })
 // vite.config.js
 
