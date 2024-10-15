@@ -28,7 +28,7 @@ const DashBoard = () => {
             {tag == 'borrow' && <BorrowMoney />}
             {tag == "lend" && <LendMoney />}
             {tag == "balance" && <ViewBalance />}
-            {tag == "" && <Main />}
+            {tag == "home" && <Main />}
 
         </div>
     );

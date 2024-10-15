@@ -67,7 +67,7 @@ const Nav = () => {
             </div>
 
             <Navbar.Collapse>
-                <Navbar.Link href="#" active>
+                <Navbar.Link href="/main?tag=home" active>
                     Home
                 </Navbar.Link>
                 <Navbar.Link href="#">About</Navbar.Link>
