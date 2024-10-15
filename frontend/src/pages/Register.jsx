@@ -249,11 +249,10 @@ const Register = () => {
                     </>
                 )}
 
-
                 {error && <Alert color="failure" className="mb-2"><span>{error}</span></Alert>}
 
                 <div className="flex justify-between">
-                    <Button color="gray" onClick={handleBack} disabled={step === 1}>Back</Button>
+                    <Button color="gray" onClick={() => { step === 1 ? navigate('/') : handleBack(); }} disabled={loading}>Back</Button>
                     {step === 3 ? <Button type="submit" isProcessing={loading} gradientDuoTone="greenToBlue">Register</Button> : <Button type="submit" gradientDuoTone="greenToBlue">Next</Button>}
                 </div>
             </form>
