@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HiDotsVertical } from 'react-icons/hi'; // For the three dots icon
+import { Button } from 'flowbite-react'; // Import Flowbite Button
 
 const LendMoney = () => {
     const [boxes, setBoxes] = useState([]); // List of boxes
@@ -7,6 +8,21 @@ const LendMoney = () => {
     const [newBox, setNewBox] = useState({ amount: '', duration: '', minInterest: '', maxInterest: '' }); // New box values
     const [showMenu, setShowMenu] = useState(null); // Track which box menu is open
     const [editIndex, setEditIndex] = useState(null); // Track which box is being edited
+    const [errorMessage, setErrorMessage] = useState(''); // Error message for validation
+    const menuRef = useRef(null); // Ref for the dropdown menu
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowMenu(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Function to toggle dropdown for a specific box
     const toggleMenu = (index) => {
@@ -17,33 +33,74 @@ const LendMoney = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewBox({ ...newBox, [name]: value });
+        setErrorMessage(''); // Reset error message on input change
+    };
+
+    // Function to validate input fields with priority error handling
+    const validateInputs = () => {
+        const { amount, duration, minInterest, maxInterest } = newBox;
+
+        if (!amount || !duration || !minInterest || !maxInterest) {
+            return "Please fill in all fields.";
+        }
+        if (amount <= 0 || isNaN(amount)) {
+            return "Amount should be a positive number.";
+        }
+        if (duration <= 0 || isNaN(duration)) {
+            return "Duration should be greater than 0 months.";
+        }
+        if (minInterest < 0 || isNaN(minInterest)) {
+            return "Minimum interest should not be negative.";
+        }
+        if (maxInterest <= 0 || isNaN(maxInterest)) {
+            return "Maximum interest should be a positive number.";
+        }
+        if (minInterest > maxInterest) {
+            return "Minimum interest should be less than maximum interest.";
+        }
+        return ""; // No error
+    };
+
+    // Function to reset form fields
+    const resetForm = () => {
+        setNewBox({ amount: '', duration: '', minInterest: '', maxInterest: '' }); // Reset form fields
+        setErrorMessage(''); // Clear any previous error messages
     };
 
     // Function to go back to the grid without adding a box
     const handleBack = () => {
+        resetForm(); // Reset the form fields when going back
         setShowForm(false);
         setEditIndex(null); // Reset edit index when going back
     };
 
     // Function to add a new box with user input or update an existing box
     const handleNext = () => {
-        if (newBox.amount && newBox.duration && newBox.minInterest && newBox.maxInterest) {
-            if (editIndex !== null) {
-                // Update existing box
-                const updatedBoxes = boxes.map((box, index) =>
-                    index === editIndex ? newBox : box
-                );
-                setBoxes(updatedBoxes);
-            } else {
-                // Add new box
-                setBoxes([...boxes, newBox]);
-            }
-            setNewBox({ amount: '', duration: '', minInterest: '', maxInterest: '' }); // Reset form fields
-            setShowForm(false); // Go back to grid view
-            setEditIndex(null); // Reset edit index
-        } else {
-            alert('Please fill all fields');
+        const error = validateInputs();
+        if (error) {
+            setErrorMessage(error); // Display only one error message
+            return;
         }
+
+        if (editIndex !== null) {
+            // Update existing box
+            const updatedBoxes = boxes.map((box, index) =>
+                index === editIndex ? newBox : box
+            );
+            setBoxes(updatedBoxes);
+        } else {
+            // Add new box
+            setBoxes([...boxes, newBox]);
+        }
+        resetForm(); // Reset form after submission
+        setShowForm(false); // Go back to grid view
+        setEditIndex(null); // Reset edit index
+    };
+
+    // Function to open the form for a new box and ensure the form is cleared
+    const handleAddNewBox = () => {
+        resetForm(); // Clear any previously entered values
+        setShowForm(true); // Show the form for adding a new box
     };
 
     // Function to initiate edit mode
@@ -58,48 +115,63 @@ const LendMoney = () => {
         <div className="relative flex-grow p-6 flex flex-col">
             {/* Form to input new box details */}
             {showForm ? (
-                <div className="flex flex-col justify-center items-center bg-white shadow-lg p-6 rounded-lg" style={{ height: '300px', width: '400px', margin: 'auto' }}>
-                    <div className="flex justify-between w-full mb-4">
-                        <button onClick={handleBack} className="bg-gray-500 text-white px-4 py-2 rounded">Back</button>
-                        <button onClick={handleNext} className="bg-blue-500 text-white px-4 py-2 rounded">Next</button>
+                <div className="flex flex-col justify-center items-center bg-white shadow-lg p-6 rounded-lg" style={{ width: '400px', margin: 'auto' }}>
+                    {/* Form fields */}
+                    <div className="w-full mb-4">
+                        <label className="block text-blue-600">Amount</label>
+                        <input
+                            type="number"
+                            name="amount"
+                            value={newBox.amount}
+                            onChange={handleInputChange}
+                            className="border border-gray-300 rounded p-2 w-full"
+                        />
                     </div>
-                    <input
-                        type="text"
-                        name="amount"
-                        placeholder="Enter Amount"
-                        value={newBox.amount}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 rounded p-2 mb-2 w-full"
-                    />
-                    <input
-                        type="text"
-                        name="duration"
-                        placeholder="Enter Duration"
-                        value={newBox.duration}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 rounded p-2 mb-2 w-full"
-                    />
-                    <input
-                        type="text"
-                        name="minInterest"
-                        placeholder="Enter Minimum Interest"
-                        value={newBox.minInterest}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 rounded p-2 mb-2 w-full"
-                    />
-                    <input
-                        type="text"
-                        name="maxInterest"
-                        placeholder="Enter Maximum Interest"
-                        value={newBox.maxInterest}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 rounded p-2 mb-2 w-full"
-                    />
+                    <div className="w-full mb-4">
+                        <label className="block text-blue-600">Duration (months)</label>
+                        <input
+                            type="number"
+                            name="duration"
+                            value={newBox.duration}
+                            onChange={handleInputChange}
+                            className="border border-gray-300 rounded p-2 w-full"
+                        />
+                    </div>
+                    <div className="w-full mb-4">
+                        <label className="block text-blue-600">Minimum Interest (%)</label>
+                        <input
+                            type="number"
+                            name="minInterest"
+                            value={newBox.minInterest}
+                            onChange={handleInputChange}
+                            className="border border-gray-300 rounded p-2 w-full"
+                        />
+                    </div>
+                    <div className="w-full mb-4">
+                        <label className="block text-blue-600">Maximum Interest (%)</label>
+                        <input
+                            type="number"
+                            name="maxInterest"
+                            value={newBox.maxInterest}
+                            onChange={handleInputChange}
+                            className="border border-gray-300 rounded p-2 w-full"
+                        />
+                    </div>
+
+                    {/* Error message for the entire form */}
+                    {errorMessage && (
+                        <div className="mt-2 text-red-500 text-sm">{errorMessage}</div>
+                    )}
+
+                    <div className="flex justify-between w-full mt-4">
+                        <Button onClick={handleBack} color="gray">Back</Button>
+                        <Button onClick={handleNext}>Next</Button>
+                    </div>
                 </div>
             ) : (
                 <>
                     {/* Scrollable container with grid layout for boxes */}
-                    <div className="grid gap-6 overflow-y-auto" style={{ gridTemplateColumns: '1fr 1fr', width: 'calc(100% - 20px)' }}>
+                    <div className="grid grid-cols-3 gap-6 overflow-y-auto" style={{ width: 'calc(100% - 20px)' }}>
                         {boxes.map((box, index) => (
                             <div
                                 key={index}
@@ -119,7 +191,7 @@ const LendMoney = () => {
 
                                 {/* Dropdown Menu */}
                                 {showMenu === index && (
-                                    <div className="absolute top-10 right-3 bg-white shadow-lg rounded-md border border-gray-200">
+                                    <div ref={menuRef} className="absolute top-10 right-3 bg-white shadow-lg rounded-md border border-gray-200">
                                         <ul className="text-left">
                                             <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleEdit(index)}>Edit</li>
                                             <li
@@ -132,38 +204,21 @@ const LendMoney = () => {
                                     </div>
                                 )}
 
-                                {/* Display user input values */}
-                                <div className="flex flex-col justify-center items-center space-y-2 text-center">
-                                    <p className="text-md font-medium text-gray-700">
-                                        Amount: <span className="font-semibold">$ {box.amount}</span>
-                                    </p>
-                                    <p className="text-md font-medium text-gray-700">
-                                        Duration: <span className="font-semibold">{box.duration} months</span>
-                                    </p>
-                                    <p className="text-md font-medium text-gray-700">
-                                        Min Interest: <span className="font-semibold">{box.minInterest}%</span>
-                                    </p>
-                                    <p className="text-md font-medium text-gray-700">
-                                        Max Interest: <span className="font-semibold">{box.maxInterest}%</span>
-                                    </p>
+                                {/* Box content */}
+                                <div className="text-center">
+                                    <p className="text-blue-600">Amount: <span className="font-semibold text-black">{box.amount}</span></p>
+                                    <p className="text-blue-600">Duration: <span className="font-semibold text-black">{box.duration} months</span></p>
+                                    <p className="text-blue-600">Min Interest: <span className="font-semibold text-black">{box.minInterest}%</span></p>
+                                    <p className="text-blue-600">Max Interest: <span className="font-semibold text-black">{box.maxInterest}%</span></p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* Add button centered at the bottom */}
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-blue-600 focus:outline-none"
-                        style={{
-                            position: 'fixed',
-                            bottom: '30px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                        }}
-                    >
-                        Add
-                    </button>
+                    {/* Button to add new box */}
+                    <div className="mt-4">
+                        <Button onClick={handleAddNewBox}>Add New Box</Button>
+                    </div>
                 </>
             )}
         </div>
