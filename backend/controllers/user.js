@@ -64,3 +64,40 @@ export const getLendingRequests = async (req, res) => {
         res.status(500).json({ message: "Server error or data inconsistency detected" });
     }
 };
+
+
+export const actionOnLendingStatus = async (req, res) => {
+    try {
+        const { transaction_id, action } = req.body;
+
+        // Find the transaction using the provided transaction_id
+        const transaction = await Transaction.findById(transaction_id);
+        if (!transaction) {
+            return res.status(404).json({ message: 'Transaction not found' });
+        }
+
+        if (action === "accepted") {
+            // Step 1: Remove all other transactions with the same borrower_id and amount
+            await Transaction.deleteMany({
+                borrower_id: transaction.borrower_id,
+                amount: transaction.amount,
+                _id: { $ne: transaction_id }, // Exclude the current transaction
+            });
+
+            // Step 2: Update the status of the accepted transaction
+            transaction.transaction_status = "accepted";
+            await transaction.save();
+
+            res.status(200).json({ message: 'Transaction accepted and conflicts removed.' });
+        } else if (action === "rejected") {
+            // Step 3: Remove the rejected transaction
+            await Transaction.findByIdAndDelete(transaction_id);
+            res.status(200).json({ message: 'Transaction rejected and removed.' });
+        } else {
+            res.status(400).json({ message: 'Invalid action.' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
