@@ -1,0 +1,138 @@
+[
+    {
+        "name": "Jane Smith",
+        "email": "janesmith@example.com",
+        "phone": "2345678901",
+        "bank_details": {
+            "acc_number": "12945678910",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000124",
+            "upi_id": "janesmith@upi",
+            "balance": 5823,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    },
+    {
+        "name": "Alice Brown",
+        "email": "alice.brown@example.com",
+        "phone": "3456789012",
+        "bank_details": {
+            "acc_number": "12945678911",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000125",
+            "upi_id": "alicebrown@upi",
+            "balance": 1234,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    },
+    {
+        "name": "Bob Johnson",
+        "email": "bob.johnson@example.com",
+        "phone": "4567890123",
+        "bank_details": {
+            "acc_number": "12945678912",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000126",
+            "upi_id": "bobjohnson@upi",
+            "balance": 7654,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    },
+    {
+        "name": "Charlie Green",
+        "email": "charlie.green@example.com",
+        "phone": "5678901234",
+        "bank_details": {
+            "acc_number": "12945678913",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000127",
+            "upi_id": "charliegreen@upi",
+            "balance": 8901,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    },
+    {
+        "name": "Diana Blue",
+        "email": "diana.blue@example.com",
+        "phone": "6789012345",
+        "bank_details": {
+            "acc_number": "12945678914",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000128",
+            "upi_id": "dianablue@upi",
+            "balance": 4321,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    },
+    {
+        "name": "Eve White",
+        "email": "eve.white@example.com",
+        "phone": "7890123456",
+        "bank_details": {
+            "acc_number": "12945678915",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000129",
+            "upi_id": "evewhite@upi",
+            "balance": 5678,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    },
+    {
+        "name": "Frank Black",
+        "email": "frank.black@example.com",
+        "phone": "8901234567",
+        "bank_details": {
+            "acc_number": "12945678916",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000130",
+            "upi_id": "frankblack@upi",
+            "balance": 3456,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    },
+    {
+        "name": "Grace Red",
+        "email": "grace.red@example.com",
+        "phone": "9012345678",
+        "bank_details": {
+            "acc_number": "12945678917",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000131",
+            "upi_id": "gracered@upi",
+            "balance": 6789,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    },
+    {
+        "name": "Henry Gray",
+        "email": "henry.gray@example.com",
+        "phone": "0123456789",
+        "bank_details": {
+            "acc_number": "12945678918",
+            "pin": "$2a$10$Nvj2ZyO9ysgKog3hqCnhqO0oPDWTruntQEgvWpXo1FKypmt1Fdb5y",
+            "IFSC": "EXAM0000132",
+            "upi_id": "henrygray@upi",
+            "balance": 9101,
+            "__v": 0
+        },
+        "createdAt": "2024-10-15T08:42:14.751+00:00",
+        "updatedAt": "2024-10-15T08:42:14.751+00:00"
+    }
+]
+

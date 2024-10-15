@@ -1,0 +1,58 @@
+[
+    {
+        "user_id": "670e2ae6a5ea1ce5617c0bc9", 
+        "amount": 10000,
+        "max_interest": 7.5,
+        "min_interest": 5.0,
+        "duration": 12
+    },
+    {
+        "user_id": "670e2de24956aec46414ca88", 
+        "amount": 20000,
+        "max_interest": 8.0,
+        "min_interest": 6.0,
+        "duration": 24
+    },
+    {
+        "user_id": "670e2de24956aec46414ca88", 
+        "amount": 15000,
+        "max_interest": 9.0,
+        "min_interest": 7.0,
+        "duration": 18
+    },
+    {
+        "user_id": "670e2ae6a5ea1ce5617c0bc9", 
+        "amount": 30000,
+        "max_interest": 6.5,
+        "min_interest": 5.5,
+        "duration": 36
+    },
+    {
+        "user_id": "670e2ae6a5ea1ce5617c0bc9", 
+        "amount": 25000,
+        "max_interest": 7.0,
+        "min_interest": 5.0,
+        "duration": 48
+    },
+    {
+        "user_id": "670e2ae6a5ea1ce5617c0bc9", 
+        "amount": 5000,
+        "max_interest": 8.5,
+        "min_interest": 6.5,
+        "duration": 6
+    },
+    {
+        "user_id": "670e2de24956aec46414ca8f", 
+        "amount": 12000,
+        "max_interest": 7.2,
+        "min_interest": 5.8,
+        "duration": 10
+    },
+    {
+        "user_id": "670e2de24956aec46414ca8f", 
+        "amount": 18000,
+        "max_interest": 6.8,
+        "min_interest": 5.3,
+        "duration": 30
+    }
+]
