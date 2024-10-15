@@ -5,39 +5,45 @@ import img from '../assets/Login/img.jpg';
 const Login = () => {
     const [upiId, setUpiId] = useState("");
     const [pin, setPin] = useState("");
-    const [error, setError] = useState("");
+    const [errorMessage, setErrorMessage] = useState(""); // One unified error message
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false); // State to control visibility
 
+    // UPI ID validation regex
+    const validateUpiId = (upiId) => /^[a-zA-Z0-9]+@[a-zA-Z0-9]+$/.test(upiId);
+
+    // PIN validation regex (6-digit numeric pin)
+    const validatePin = (pin) => /^\d{6}$/.test(pin);
+
     const handleLogin = async (e) => {
         e.preventDefault();
-        setError(""); // Clear previous errors
+        setErrorMessage(""); // Reset error message
         setLoading(true); // Start loading state
 
-        // Basic validation for UPI ID and PIN
-        if (!upiId || !pin) {
-            setError("Both UPI ID and PIN are required.");
-            setLoading(false);
+        // Validation flags
+        let valid = true;
+
+        // Scenario 3: Both inputs are invalid (show UPI error only)
+        if (!upiId || !validateUpiId(upiId)) {
+            setErrorMessage("Invalid UPI ID. Format should be like: example@upi.");
+            valid = false;
+        } else if (!pin || !validatePin(pin)) {
+            // Scenario 2: Only PIN is invalid
+            setErrorMessage("Invalid PIN. Must be a 6-digit number.");
+            valid = false;
+        }
+
+        if (!valid) {
+            setLoading(false); // Stop loading if validation fails
             return;
         }
 
-        if (pin.length !== 6) {
-            setError("PIN must be 6 digits.");
-            setLoading(false);
-            return;
-        }
-
-        // Here, you would normally make an API call to check the UPI ID and PIN
-        console.log("Logging in with", upiId, pin);
-        // Example API call (replace with your actual API call)
+        // Simulated API call for login
         try {
-            // Simulate an API call
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            // If successful, redirect or show success message
-            console.log("Login successful!");
+            console.log("Login successful with UPI ID:", upiId);
         } catch (err) {
-            // Handle login error
-            setError("Login failed. Please try again.");
+            setErrorMessage("Login failed. Please try again.");
         } finally {
             setLoading(false); // Stop loading state
         }
@@ -59,6 +65,7 @@ const Login = () => {
                         className='w-full max-w-xl flex flex-col justify-center items-center gap-5 mt-5 animate-slide-up'
                         onSubmit={handleLogin}
                     >
+                        {/* UPI ID Input */}
                         <div className="w-full max-w-sm flex flex-col justify-center">
                             <Label htmlFor="upiId" className="text-slate-100 text-md font-semibold" value="Your UPI ID :" />
                             <TextInput
@@ -71,6 +78,8 @@ const Login = () => {
                                 className={`w-full max-w-lg transition-transform duration-500 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}
                             />
                         </div>
+
+                        {/* PIN Input */}
                         <div className="w-full max-w-sm flex flex-col justify-center">
                             <Label htmlFor="pin" className="text-slate-100 text-md font-semibold" value="Your PIN :" />
                             <TextInput
@@ -90,11 +99,17 @@ const Login = () => {
                             gradientDuoTone='greenToBlue'
                             type='submit'
                             disabled={loading}
-                            size="lg" // Disable button when loading
+                            size="lg"
                         >
                             {loading ? "Logging in..." : "Login"}
                         </Button>
-                        {error && <Alert color="failure" className="mb-4">{error}</Alert>}
+
+                        {/* Alert Box for Errors (Displayed under the login button) */}
+                        {errorMessage && (
+                            <Alert color="failure" className="w-full max-w-lg mt-4">
+                                {errorMessage}
+                            </Alert>
+                        )}
                     </form>
                 </div>
             </div>
