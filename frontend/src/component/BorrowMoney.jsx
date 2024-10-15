@@ -3,7 +3,7 @@ import { Button, Card, Label, TextInput } from 'flowbite-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const TransferMoney = () => {
+const BorrowMoney = () => {
     const [paymentMethod, setPaymentMethod] = useState('');
     const [receiverDetails, setReceiverDetails] = useState('');
     const [amount, setAmount] = useState('');
@@ -204,4 +204,4 @@ const TransferMoney = () => {
     );
 };
 
-export default TransferMoney;
+export default BorrowMoney;
