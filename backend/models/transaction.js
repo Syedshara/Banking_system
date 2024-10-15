@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const transactionSchema = new mongoose.Schema({
+    lending_id: {
+        type: mongoose.Schema.Types.ObjectId, // Reference to the User model
+        required: true,
+        ref: 'Lending' // Ensure it refers to the User collection
+    },
     lender_id: {
         type: mongoose.Schema.Types.ObjectId, // Reference to the User model
         required: true,
