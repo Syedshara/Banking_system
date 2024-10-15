@@ -7,46 +7,55 @@ const Register = () => {
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
-    const [isAccount, setIsAccount] = useState(true);
-
-    // Account details
     const [accountNumber, setAccountNumber] = useState("");
-    const [accountType, setAccountType] = useState("");
+    const [accountNumberConfirm, setAccountNumberConfirm] = useState("");
+    const [ifscNumber, setIfscNumber] = useState("");
     const [bankName, setBankName] = useState("");
-
-    // Card details
-    const [cardNumber, setCardNumber] = useState("");
-    const [cardType, setCardType] = useState("");
-    const [expiryDate, setExpiryDate] = useState("");
-    const [cvv, setCvv] = useState("");
-
-    // UPI details
     const [upiId, setUpiId] = useState("");
-    const [pin, setPin] = useState("");
-
+    const [pin, setPin] = useState(Array(6).fill(""));
+    const [confirmPin, setConfirmPin] = useState(Array(6).fill(""));
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const handlePinChange = (index, value, setPinFunc, pinArray) => {
+        if (/^[0-9]?$/.test(value)) {
+            const updatedPin = [...pinArray];
+            updatedPin[index] = value;
+            setPinFunc(updatedPin);
+            if (value !== "" && index < 5) {
+                document.getElementById(`pin-${index + 1}`).focus();
+            }
+        }
+    };
+
+    const handlePinDelete = (index, setPinFunc, pinArray) => {
+        const updatedPin = [...pinArray];
+        updatedPin[index] = "";
+        setPinFunc(updatedPin);
+        if (index > 0) {
+            document.getElementById(`pin-${index - 1}`).focus();
+        }
+    };
 
     const handleNext = () => {
         if (step === 1 && (!fullName || !email || !phoneNumber)) {
             setError("All personal details are required.");
             return;
         }
-        if (step === 2) {
-            if (isAccount) {
-                if (!accountNumber || !accountType || !bankName) {
-                    setError("All account details are required.");
-                    return;
-                }
-            } else {
-                if (!cardNumber || !cardType || !expiryDate || !cvv) {
-                    setError("All card details are required.");
-                    return;
-                }
-            }
+        if (step === 2 && (!accountNumber || !accountNumberConfirm || !ifscNumber || !bankName)) {
+            setError("All account details are required.");
+            return;
         }
-        if (step === 3 && (!upiId || pin.length !== 6)) {
-            setError("UPI ID is required and PIN must be 6 digits.");
+        if (step === 2 && accountNumber !== accountNumberConfirm) {
+            setError("Account numbers do not match.");
+            return;
+        }
+        if (step === 3 && (!upiId || pin.includes("") || confirmPin.includes(""))) {
+            setError("UPI ID and both PINs must be filled out.");
+            return;
+        }
+        if (step === 3 && pin.join('') !== confirmPin.join('')) {
+            setError("PINs do not match.");
             return;
         }
 
@@ -68,11 +77,11 @@ const Register = () => {
             fullName,
             email,
             phoneNumber,
-            ...(isAccount
-                ? { accountNumber, accountType, bankName }
-                : { cardNumber, cardType, expiryDate, cvv }),
+            accountNumber,
+            ifscNumber,
+            bankName,
             upiId,
-            pin,
+            pin: pin.join(""),
         };
 
         console.log("Registering user with data:", userData);
@@ -87,23 +96,18 @@ const Register = () => {
     };
 
     return (
-        <div className="flex flex-col justify-center ml-36 items-start min-h-screen text-white"
-        >
+        <div className="flex flex-col justify-center ml-36 items-start min-h-screen text-white">
             <div
                 className="absolute inset-0 bg-cover bg-center -z-50"
                 style={{
-                    backgroundImage: `url(${img})`, // Replace with your image URL
+                    backgroundImage: `url(${img})`,
                     opacity: 0.8,
-
-
                 }}
             />
-            <div
-                className="absolute inset-0 -z-40 bg-slate-950 opacity-70" // Adjust opacity for shade effect
-            />
+            <div className="absolute inset-0 -z-40 bg-slate-950 opacity-70" />
             <h1 className="text-3xl z-40  font-bold mb-4 text-green-400">Register as New User</h1>
 
-            <form className='w-full max-w-lg flex flex-col gap-5 mt-5' onSubmit={step === 3 ? handleRegister : (e) => { e.preventDefault(); handleNext(); }}>
+            <form className="w-full max-w-lg flex flex-col gap-5 mt-5" onSubmit={step === 3 ? handleRegister : (e) => { e.preventDefault(); handleNext(); }}>
                 {step === 1 && (
                     <>
                         <h2 className="text-xl text-white font-semibold mb-2">Personal Details</h2>
@@ -121,46 +125,17 @@ const Register = () => {
                 {step === 2 && (
                     <>
                         <h2 className="text-xl font-semibold mb-2">Account Details</h2>
-                        <div>
-                            <Label className="text-slate-100 text-md font-semibold">Select Account or Card:</Label>
-                            <div className="flex justify-between">
-                                <label className="flex items-center">
-                                    <input type="radio" checked={isAccount} className="mr-2" onChange={() => setIsAccount(true)} />
-                                    Account
-                                </label>
-                                <label className="flex items-center">
-                                    <input type="radio" checked={!isAccount} className="mr-2" onChange={() => setIsAccount(false)} />
-                                    Card
-                                </label>
-                            </div>
-                        </div>
+                        <Label htmlFor="accountNumber" className="text-slate-100 text-md font-semibold">Account Number (Visible):</Label>
+                        <TextInput type="text" id="accountNumber" placeholder="Enter your account number" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
 
-                        {isAccount ? (
-                            <>
-                                <Label htmlFor="accountNumber" className="text-slate-100 text-md font-semibold">Account Number:</Label>
-                                <TextInput type="text" id="accountNumber" placeholder="Enter your account number" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
+                        <Label htmlFor="accountNumberConfirm" className="text-slate-100 text-md font-semibold">Account Number (Password):</Label>
+                        <TextInput type="password" id="accountNumberConfirm" placeholder="Re-enter your account number" value={accountNumberConfirm} onChange={(e) => setAccountNumberConfirm(e.target.value)} required />
 
-                                <Label htmlFor="accountType" className="text-slate-100 text-md font-semibold">Account Type:</Label>
-                                <TextInput type="text" id="accountType" placeholder="Enter your account type" value={accountType} onChange={(e) => setAccountType(e.target.value)} required />
+                        <Label htmlFor="ifscNumber" className="text-slate-100 text-md font-semibold">IFSC Number:</Label>
+                        <TextInput type="text" id="ifscNumber" placeholder="Enter your IFSC number" value={ifscNumber} onChange={(e) => setIfscNumber(e.target.value)} required />
 
-                                <Label htmlFor="bankName" className="text-slate-100 text-md font-semibold">Bank Name:</Label>
-                                <TextInput type="text" id="bankName" placeholder="Enter your bank name" value={bankName} onChange={(e) => setBankName(e.target.value)} required />
-                            </>
-                        ) : (
-                            <>
-                                <Label htmlFor="cardNumber" className="text-slate-100 text-md font-semibold">Card Number:</Label>
-                                <TextInput type="text" id="cardNumber" placeholder="Enter your card number" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} required />
-
-                                <Label htmlFor="cardType" className="text-slate-100 text-md font-semibold">Card Type:</Label>
-                                <TextInput type="text" id="cardType" placeholder="Enter your card type" value={cardType} onChange={(e) => setCardType(e.target.value)} required />
-
-                                <Label htmlFor="expiryDate" className="text-slate-100 text-md font-semibold">Expiry Date:</Label>
-                                <TextInput type="date" id="expiryDate" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} required />
-
-                                <Label htmlFor="cvv" className="text-slate-100 text-md font-semibold">CVV:</Label>
-                                <TextInput type="text" id="cvv" placeholder="Enter CVV" value={cvv} onChange={(e) => setCvv(e.target.value)} required />
-                            </>
-                        )}
+                        <Label htmlFor="bankName" className="text-slate-100 text-md font-semibold">Bank Name:</Label>
+                        <TextInput type="text" id="bankName" placeholder="Enter your bank name" value={bankName} onChange={(e) => setBankName(e.target.value)} required />
                     </>
                 )}
 
@@ -170,23 +145,64 @@ const Register = () => {
                         <Label htmlFor="upiId" className="text-slate-100 text-md font-semibold">UPI ID:</Label>
                         <TextInput type="text" id="upiId" placeholder="example@upi" value={upiId} onChange={(e) => setUpiId(e.target.value)} required />
 
-                        <Label htmlFor="pin" className="text-slate-100 text-md font-semibold">6-Digit PIN:</Label>
-                        <TextInput type="password" id="pin" placeholder="Enter 6-digit PIN" value={pin} onChange={(e) => setPin(e.target.value)} required minLength={6} maxLength={6} />
+                        <Label className="text-slate-100 text-md font-semibold">Create PIN:</Label>
+                        <div className="flex gap-2">
+                            {pin.map((digit, index) => (
+                                <TextInput
+                                    key={index}
+                                    type="text"
+                                    id={`pin-${index}`}
+                                    value={digit}
+                                    maxLength={1}
+                                    className="w-10 text-center"
+                                    onChange={(e) => handlePinChange(index, e.target.value, setPin, pin)}
+                                    onKeyDown={(e) => e.key === "Backspace" && handlePinDelete(index, setPin, pin)}
+                                />
+                            ))}
+                        </div>
+
+                        <Label className="text-slate-100 text-md font-semibold">Confirm PIN:</Label>
+                        <div className="flex gap-2">
+                            {confirmPin.map((digit, index) => (
+                                <TextInput
+                                    key={index}
+                                    type="password"
+                                    id={`confirm-pin-${index}`}
+                                    value={digit}
+                                    maxLength={1}
+                                    className="w-10 text-center"
+                                    onChange={(e) => handlePinChange(index, e.target.value, setConfirmPin, confirmPin)}
+                                    onKeyDown={(e) => e.key === "Backspace" && handlePinDelete(index, setConfirmPin, confirmPin)}
+                                />
+                            ))}
+                        </div>
                     </>
                 )}
 
                 <div className="flex justify-between mt-4">
                     {step > 1 && (
-                        <Button type="button" onClick={handleBack} gradientDuoTone='greenToBlue' className="w-36">
+                        <Button type="button" color="gray" onClick={handleBack}>
                             Back
                         </Button>
                     )}
-                    <Button type="submit" disabled={loading} gradientDuoTone='greenToBlue' className="w-36">
-                        {loading ? "Loading..." : step === 3 ? "Register" : "Next"}
-                    </Button>
+                    {step === 3 ? (
+                        <Button type="submit" color="green
+
+" isLoading={loading} disabled={loading}>
+                            Register
+                        </Button>
+                    ) : (
+                        <Button type="submit" color="green">
+                            Next
+                        </Button>
+                    )}
                 </div>
 
-                {error && <Alert color="failure" className="mb-4">{error}</Alert>}
+                {error && (
+                    <Alert color="failure" className="mt-4">
+                        {error}
+                    </Alert>
+                )}
             </form>
         </div>
     );

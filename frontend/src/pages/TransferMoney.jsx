@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Button, Card, Label, TextInput } from 'flowbite-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const TransferMoney = () => {
     const [paymentMethod, setPaymentMethod] = useState('');
@@ -51,19 +53,37 @@ const TransferMoney = () => {
     const handlePinSubmit = (e) => {
         e.preventDefault();
         if (pin.join('').length === 6) {
+            // Show success message
+            toast.success('Transaction successful!');
+
             setSuccessMessage('Transaction successful!');
-            setCurrentScreen(3);
+
+            // Reset the form fields and go back to the first step after 3 seconds
+            setTimeout(() => {
+                setPaymentMethod('');
+                setReceiverDetails('');
+                setAmount('');
+                setReason('');
+                setPin(Array(6).fill('')); // Reset PIN array
+                setCurrentScreen(1); // Go back to the first step
+                setSuccessMessage(''); // Clear success message
+            }, 3000); // 3 seconds delay to show success message
         } else {
             alert('Please enter a valid 6-digit PIN.');
         }
     };
 
+    const handleBackButton = () => {
+        setPin(Array(6).fill(''));
+        setCurrentScreen(1); // Return to payment method screen
+    };
+
     return (
-        <div className="p-5 mx-auto mt-5 mb-5 max-w-xl">
-            <h2 className="text-2xl font-bold mb-4">Transfer Money</h2>
+        <div className="p-5 w-full  mx-auto mt-5 mb-5 max-w-3xl bg-slate-200 ">
+            <h2 className="text-2xl text-center font-bold mb-4">Transfer Money</h2>
 
             {currentScreen === 1 && (
-                <Card>
+                <Card className='w-full max-w-2xl mx-auto'>
                     <form onSubmit={handlePaymentSubmit}>
                         <div className="mb-4">
                             <Label htmlFor="paymentMethod" value="Choose Payment Method" />
@@ -77,7 +97,6 @@ const TransferMoney = () => {
                                 <option value="">Select a method</option>
                                 <option value="UPI">UPI ID</option>
                                 <option value="Account">Account</option>
-                                <option value="Card">Card</option>
                             </select>
                         </div>
 
@@ -87,7 +106,7 @@ const TransferMoney = () => {
                             <TextInput
                                 id="receiverDetails"
                                 type="text"
-                                placeholder="Enter receiver UPI ID, account, or card number"
+                                placeholder="Enter receiver UPI ID or account"
                                 value={receiverDetails}
                                 onChange={(e) => setReceiverDetails(e.target.value)}
                                 required
@@ -127,22 +146,23 @@ const TransferMoney = () => {
                             </select>
                         </div>
 
-                        <Button type="submit" gradientDuoTone="greenToBlue">
-                            Pay / Send
+                        <Button type="submit" className='mt-14 mx-auto w-48 font-semibold py-auto' size='xl' gradientDuoTone="greenToBlue">
+                            Pay
                         </Button>
                     </form>
                 </Card>
             )}
 
             {currentScreen === 2 && (
-                <div className="mt-5">
+                <div className="mt-20">
                     <Card>
-                        <form onSubmit={handlePinSubmit}>
-                            <Label htmlFor="pin" value="Enter 6-Digit PIN" />
+                        <form onSubmit={handlePinSubmit} className='flex flex-col items-center gap-3 '>
+                            <Label htmlFor="pin" value="Enter 6-Digit PIN" className='mx-auto self-center' />
                             <div className="flex gap-2 justify-center my-4">
                                 {pin.map((value, index) => (
                                     <TextInput
                                         key={index}
+                                        id='pin'
                                         type="password"
                                         maxLength={1}
                                         className="w-12 text-center text-lg"
@@ -154,8 +174,17 @@ const TransferMoney = () => {
                                     />
                                 ))}
                             </div>
-                            <Button type="submit" gradientDuoTone="greenToBlue">
+                            <Button type="submit" className='mx-auto mt-5 font-bold' gradientDuoTone="greenToBlue">
                                 Confirm Transaction
+                            </Button>
+
+                            {/* Add back button */}
+                            <Button
+                                className='mx-auto mt-2'
+                                color="light"
+                                onClick={handleBackButton}
+                            >
+                                Back
                             </Button>
                         </form>
                     </Card>
@@ -169,6 +198,8 @@ const TransferMoney = () => {
                     </Card>
                 </div>
             )}
+
+            <ToastContainer />
         </div>
     );
 };

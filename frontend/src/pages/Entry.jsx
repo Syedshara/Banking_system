@@ -39,9 +39,9 @@ const Entry = () => {
                     className={` whitespace-nowrap text-lg sm:text-4xl font-semibold text-blue-500 my-10 ${showAnimation ? 'animate-slide-down' : ''}`}
                 >
                     <span className='px-2 py-1 border-2 border-blue-500 rounded-lg text-white mx-1 text-lg sm:text-4xl font-bold'>
-                        Online
+                        P2P
                     </span>
-                    Banking
+                    Lending
                 </Link>
 
                 {/* Project description */}

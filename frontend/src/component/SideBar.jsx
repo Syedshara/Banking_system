@@ -21,8 +21,8 @@ const SideBar = () => {
                     <Sidebar.Item icon={GrTransaction} onClick={() => handleNavigation('transactions')}>
                         View Transactions
                     </Sidebar.Item>
-                    <Sidebar.Item icon={HiCog} onClick={() => handleNavigation('settings')}>
-                        Account Settings
+                    <Sidebar.Item icon={HiCog} onClick={() => handleNavigation('balance')}>
+                        View Balance
                     </Sidebar.Item>
                     <Sidebar.Item icon={HiChartPie} onClick={() => handleNavigation('scheduled')}>
                         Scheduled Transaction
