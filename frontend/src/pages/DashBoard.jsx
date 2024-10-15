@@ -6,6 +6,7 @@ import ViewTransactions from '../component/ViewTransactions';
 import ViewBalance from '../component/ViewBalance';
 import LendMoney from '../component/LendMoney';
 import BorrowMoney from '../component/BorrowMoney';
+import Notification from '../component/Notification';
 import Main from '../component/Main';
 
 const DashBoard = () => {
@@ -28,6 +29,7 @@ const DashBoard = () => {
             {tag == 'borrow' && <BorrowMoney />}
             {tag == "lend" && <LendMoney />}
             {tag == "balance" && <ViewBalance />}
+            {tag == "notification" && <Notification />}
             {tag == "home" && <Main />}
 
         </div>
