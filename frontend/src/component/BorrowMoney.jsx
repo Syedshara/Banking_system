@@ -40,9 +40,7 @@ const BorrowMoney = () => {
             setLenders(data);
 
             // Reset form fields after successful request
-            setMoney('');
-            setDuration('');
-            setInterestRate('');
+
         } catch (error) {
             console.error('Error fetching lenders:', error);
             alert('Failed to fetch lenders. Please try again.');
@@ -101,7 +99,7 @@ const BorrowMoney = () => {
 
                             {/* Duration */}
                             <div className="mb-4 mx-4">
-                                <Label htmlFor="duration" value="Duration (in days, optional)" />
+                                <Label htmlFor="duration" value="Duration (in Months, optional)" />
                                 <TextInput
                                     id="duration"
                                     type="number"

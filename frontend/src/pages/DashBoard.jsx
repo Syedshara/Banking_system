@@ -6,6 +6,7 @@ import ViewTransactions from '../component/ViewTransactions';
 import ViewBalance from '../component/ViewBalance';
 import LendMoney from '../component/LendMoney';
 import BorrowMoney from '../component/BorrowMoney';
+import Main from '../component/Main';
 
 const DashBoard = () => {
     const location = useLocation();
@@ -27,6 +28,7 @@ const DashBoard = () => {
             {tag == 'borrow' && <BorrowMoney />}
             {tag == "lend" && <LendMoney />}
             {tag == "balance" && <ViewBalance />}
+            {tag == "" && <Main />}
 
         </div>
     );
