@@ -38,11 +38,29 @@ export const createUser = async (req, res) => {
 };
 
 export const getUsers = async (req, res) => {
+    const { upi_id, pin } = req.body;
+
+    // Check if required fields are provided
+    if (!upi_id || !pin || upi_id.trim() === '' || pin.trim() === '') {
+        return res.status(400).json({ error: 'Please provide UPI ID and PIN.' });
+    }
+
     try {
-        const users = await User.find({}); // Use the User model to fetch all users
-        res.status(200).json(users); // Send the users list as response
+        // Find user by UPI ID
+        const user = await User.findOne({ "bank_details.upi_id": upi_id });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found with this UPI ID.' });
+        }
+
+        // Compare the provided PIN with the hashed PIN stored in the database
+        const isMatch = bcryptjs.compareSync(pin, user.bank_details.pin);
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Invalid PIN.' });
+        }
+
+        // If everything is valid, return success response
+        res.status(200).json({ message: 'Login successful', userId: user._id });
     } catch (err) {
-        // Send a response with an error status
-        res.status(500).json({ error: 'Failed to retrieve users', details: err.message });
+        res.status(500).json({ error: 'Failed to login', details: err.message });
     }
 };

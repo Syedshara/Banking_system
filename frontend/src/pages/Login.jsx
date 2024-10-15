@@ -64,10 +64,17 @@ const Login = () => {
             setLoading(false);
         }
     };
+
     useEffect(() => {
         // Trigger visibility after the component mounts
         setIsVisible(true);
-    }, []);
+
+        // Check if user is already logged in
+        const userId = localStorage.getItem('user_id');
+        if (userId) {
+            navigate('/main'); // If user_id is found, redirect to main page
+        }
+    }, [navigate]);
 
     const handleBack = () => {
         navigate('/'); // Replace with your actual route
