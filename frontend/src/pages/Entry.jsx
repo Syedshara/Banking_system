@@ -46,9 +46,8 @@ const Entry = () => {
 
                 {/* Project description */}
                 <p className="text-start text-white text-md sm:text-lg mb-5 ">
-                    Welcome to the Banking Registration Portal! This platform allows new users to seamlessly register for banking services. Choose between creating an account or adding a card, and provide your personal details, banking information, and secure UPI ID with a PIN. Our goal is to offer a smooth and secure registration experience, ensuring your information is safely processed. Join us and take the first step towards hassle-free banking!
+                         Welcome to the P2P Lending Platform! This application allows users to seamlessly connect for peer-to-peer lending. Whether you're looking to borrow or lend money, our platform provides a secure and efficient way to manage your financial transactions. Join us today and experience the future of lending with transparent and user-friendly services. 
                 </p>
-
                 {/* Buttons with animation from bottom */}
                 <div className={`flex gap-5 ${showAnimation ? 'animate-slide-up' : ''}`}>
                     <Button gradientDuoTone="purpleToBlue" onClick={handleExistedUser}>
