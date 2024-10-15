@@ -30,14 +30,14 @@ const Register = () => {
             const updatedPin = [...pinArray];
             updatedPin[index] = value;
             setPinFunc(updatedPin);
-
+    
             if (value !== "" && index < 5) {
                 const nextInput = pinArray === pin ? `pin-${index + 1}` : `confirmPin-${index + 1}`;
                 document.getElementById(nextInput)?.focus();
             }
         }
     };
-
+    
 
     const handlePinDelete = (index, setPinFunc, pinArray) => {
         const updatedPin = [...pinArray];
@@ -49,7 +49,7 @@ const Register = () => {
             setPinFunc(updatedPin);
         }
     };
-
+    
 
     const handleNext = () => {
         // Step 1 validation (Personal Details)
@@ -234,21 +234,12 @@ const Register = () => {
                     </>
                 )}
 
-                <div className="flex justify-between mt-4">
-                    {step > 1 && (
-                        <Button type="button" color="gray" onClick={handleBack}>
-                            Back
-                        </Button>
-                    )}
-                    {step === 3 ? (
-                        <Button type="submit" gradientDuoTone="greenToBlue" isLoading={loading} disabled={loading}>
-                            Register
-                        </Button>
-                    ) : (
-                        <Button type="submit" className="bg-black" gradientDuoTone="greenToBlue" >
-                            Next
-                        </Button>
-                    )}
+
+                {error && <Alert color="failure" className="mb-2"><span>{error}</span></Alert>}
+                
+                <div className="flex justify-between">
+                    <Button color="gray" onClick={handleBack} disabled={step === 1}>Back</Button>
+                    {step === 3 ? <Button type="submit" isProcessing={loading} gradientDuoTone="greenToBlue">Register</Button> : <Button type="submit" gradientDuoTone="greenToBlue">Next</Button>}
                 </div>
             </form>
         </div>
