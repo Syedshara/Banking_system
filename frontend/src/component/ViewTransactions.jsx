@@ -75,7 +75,14 @@ const ViewTransactions = () => {
                                         ₹{transaction.amount}
                                     </span>
                                 </Table.Cell>
-                                <Table.Cell>{transaction.status}</Table.Cell>
+                                <Table.Cell><span
+                                        className={` ${transaction.status === 'Overdue'
+                                            ? 'text-yellow-300 font-semibold'
+                                            : 'font-normal'
+                                            }`}
+                                    >
+                                        {transaction.status}
+                                    </span></Table.Cell>
                             </Table.Row>
                         ))}
                     </Table.Body>
