@@ -6,6 +6,7 @@ import path from 'path';
 import auth from './routes/auth.js';
 import lend from './routes/lending.js';
 import user from './routes/user.js'
+import borrow from './routes/borrow.js';
 
 dotenv.config();
 const __dirname = path.resolve();
@@ -32,3 +33,4 @@ mongoose.connect(process.env.URL_DB)
 app.use('/auth', auth);
 app.use('/users', user);
 app.use('/lend', lend);
+app.use('/borrow', borrow)

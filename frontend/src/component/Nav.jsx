@@ -11,7 +11,7 @@ const Nav = () => {
     useEffect(() => {
         const userId = localStorage.getItem("user_id");
         if (userId) {
-            fetch(`http://localhost:3000/users/${userId}`)
+            fetch(`http://10.16.58.118:3000/users/${userId}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);
@@ -67,7 +67,7 @@ const Nav = () => {
             </div>
 
             <Navbar.Collapse>
-                <Navbar.Link href="#" active>
+                <Navbar.Link href="/main?tag=home" active>
                     Home
                 </Navbar.Link>
                 <Navbar.Link href="#">About</Navbar.Link>

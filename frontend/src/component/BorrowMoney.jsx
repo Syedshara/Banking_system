@@ -5,8 +5,10 @@ const BorrowMoney = () => {
     const [money, setMoney] = useState('');
     const [duration, setDuration] = useState('');
     const [interestRate, setInterestRate] = useState('');
+    const [lenders, setLenders] = useState([]); // State to store lenders list
+    const [isLoading, setIsLoading] = useState(false); // Loading state
 
-    const handleRequestSubmit = (e) => {
+    const handleRequestSubmit = async (e) => {
         e.preventDefault();
 
         // Check if money field is not empty
@@ -15,22 +17,64 @@ const BorrowMoney = () => {
             return;
         }
 
-        // Reset the form fields after submission
-        setMoney('');
-        setDuration('');
-        setInterestRate('');
+        // Set loading state to true while fetching lenders
+        setIsLoading(true);
+
+        // Send request data to backend API
+        try {
+            const response = await fetch('http://10.16.58.118:3000/borrow/getlenders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    money,
+                    duration: duration || null, // Optional
+                    interest_rate: interestRate || null, // Optional
+                }),
+            });
+
+            const data = await response.json();
+            // Assuming the response contains a list of lenders
+            console.log(data);
+            setLenders(data);
+
+            // Reset form fields after successful request
+
+        } catch (error) {
+            console.error('Error fetching lenders:', error);
+            alert('Failed to fetch lenders. Please try again.');
+        } finally {
+            setIsLoading(false); // Set loading state to false after request completes
+        }
     };
 
-    const lendingData = [
-        { name: 'John Doe', amount: '1000', interestRange: '5-10%', duration: '30 days' },
-        { name: 'Jane Smith', amount: '1500', interestRange: '4-9%', duration: '45 days' },
-        { name: 'Alex Johnson', amount: '2000', interestRange: '3-8%', duration: '60 days' },
-        { name: 'Emily Davis', amount: '2500', interestRange: '6-12%', duration: '90 days' },
-        { name: 'Michael Brown', amount: '3000', interestRange: '5-11%', duration: '120 days' },
-        { name: 'Sarah Wilson', amount: '500', interestRange: '2-6%', duration: '15 days' },
-        { name: 'David Lee', amount: '1800', interestRange: '4-10%', duration: '75 days' },
-        { name: 'Chris Evans', amount: '2200', interestRange: '5-9%', duration: '100 days' },
-    ];
+    // Handle lender selection
+    const handleLenderRequest = async (lender) => {
+        const userId = localStorage.getItem('user_id'); // Retrieve user_id from localStorage (or sessionStorage)
+
+        // Send lender and user data to the backend
+        try {
+            const response = await fetch('http://10.16.58.118:3000/borrow/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId, // Include user_id from storage
+                    lender_id: lender.lender_id, // Lender's ID
+                    lender_amount: lender.amount, // Lender's amount
+                }),
+            });
+
+            const result = await response.json();
+            console.log('Request sent successfully:', result);
+            alert('Lender selected successfully!');
+        } catch (error) {
+            console.error('Error sending lender request:', error);
+            alert('Failed to select lender. Please try again.');
+        }
+    };
 
     return (
         <div className="w-full mx-auto mb-14 max-w-5xl px-20 pb-20 pt-5">
@@ -55,7 +99,7 @@ const BorrowMoney = () => {
 
                             {/* Duration */}
                             <div className="mb-4 mx-4">
-                                <Label htmlFor="duration" value="Duration (in days, optional)" />
+                                <Label htmlFor="duration" value="Duration (in Months, optional)" />
                                 <TextInput
                                     id="duration"
                                     type="number"
@@ -85,33 +129,40 @@ const BorrowMoney = () => {
                                 className="mt-8 mx-auto w-48 font-semibold py-auto"
                                 size="xl"
                                 gradientDuoTone="greenToBlue"
+                                disabled={isLoading}
                             >
-                                Request
+                                {isLoading ? 'Requesting...' : 'Request'}
                             </Button>
                         </div>
                     </form>
                 </Card>
 
-                {/* Background Section (2/3) */}
-                <div className="w-full h-96 overflow-y-auto mx-2  flex flex-col gap-2">
-                    {/* Ensure cards are visible */}
-                    {lendingData.map((data, index) => (
-                        <Card key={index} className="max-h-28 flex py-2">
-                            <div className="flex w-full justify-between px-4 py-2">
-                                <div>
-                                    <p><strong>Name:</strong> {data.name}</p>
-                                    <p><strong>Amount:</strong> ${data.amount}</p>
-                                    <p><strong>Interest Range:</strong> {data.interestRange}</p>
-                                    <p><strong>Duration:</strong> {data.duration}</p>
+                {/* Lenders List Section (2/3) */}
+                <div className="w-full h-96 overflow-y-auto mx-2 flex flex-col gap-2">
+                    {lenders.length === 0 ? (
+                        <p className="text-center mt-5 text-lg">No lenders available.</p>
+                    ) : (
+                        lenders.map((lender, index) => (
+                            <Card key={index} className="max-h-28 flex py-2">
+                                <div className="flex w-full justify-between px-4 py-2">
+                                    <div>
+                                        <p><strong>Name:</strong> {lender.user_name}</p>
+                                        <p><strong>Amount:</strong> ₹{lender.amount}</p>
+                                        <p><strong>Interest Range:</strong> {lender.interest_range}</p>
+                                        <p><strong>Duration:</strong> {lender.duration} months</p>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <Button
+                                            color="light"
+                                            onClick={() => handleLenderRequest(lender)}
+                                        >
+                                            Request
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center">
-                                    <Button color="light">
-                                        Request
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
+                            </Card>
+                        ))
+                    )}
                 </div>
             </div>
         </div>
