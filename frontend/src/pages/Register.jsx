@@ -73,7 +73,7 @@ const Register = () => {
 
         // Step 2 validation (Account Details)
         if (step === 2) {
-            if (!accountNumber || !accountNumberConfirm || !ifscNumber || !bankName) {
+            if (!accountNumber || !accountNumberConfirm || !ifscNumber) {
                 setError("All account details are required.");
                 return;
             }
@@ -124,7 +124,14 @@ const Register = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         setLoading(true);
-
+    
+        // Additional validation for PINs matching
+        if (pin.join('') !== confirmPin.join('')) {
+            setError("PINs do not match.");
+            setLoading(false); // Stop loading
+            return; // Exit if the PINs don't match
+        }
+    
         const userData = {
             fullName,
             email,
@@ -135,18 +142,18 @@ const Register = () => {
             upiId,
             pin: pin.join(""),
         };
-
+    
         console.log("Registering user with data:", userData);
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));
             console.log("Registration successful!");
-            navigate('/main.jsx');
+            navigate('/main');
         } catch (err) {
             setError("Registration failed. Please try again.");
         } finally {
             setLoading(false);
         }
-    };
+    };    
 
     return (
         <div className="flex flex-col justify-center ml-36 items-start min-h-screen text-white">
@@ -185,10 +192,7 @@ const Register = () => {
                         <TextInput type="password" id="accountNumberConfirm" placeholder="Re-enter your account number" value={accountNumberConfirm} onChange={(e) => setAccountNumberConfirm(e.target.value)} required />
 
                         <Label htmlFor="ifscNumber" className="text-slate-100 text-md font-semibold">IFSC Number:</Label>
-                        <TextInput type="text" id="ifscNumber" placeholder="Enter your IFSC number" value={ifscNumber} onChange={(e) => setIfscNumber(e.target.value)} required />
-
-                        <Label htmlFor="bankName" className="text-slate-100 text-md font-semibold">Bank Name:</Label>
-                        <TextInput type="text" id="bankName" placeholder="Enter your bank name" value={bankName} onChange={(e) => setBankName(e.target.value)} required />
+                        <TextInput type="text" id="ifscNumber" placeholder="Eg: SBIN0123456" value={ifscNumber} onChange={(e) => setIfscNumber(e.target.value)} required />
                     </>
                 )}
 
@@ -196,7 +200,7 @@ const Register = () => {
                     <>
                         <h2 className="text-xl font-semibold mb-2">UPI & PIN</h2>
                         <Label htmlFor="upiId" className="text-slate-100 text-md font-semibold">UPI ID:</Label>
-                        <TextInput type="text" id="upiId" placeholder="Enter your UPI ID" value={upiId} onChange={(e) => setUpiId(e.target.value)} required />
+                        <TextInput type="text" id="upiId" placeholder="Eg: name@bank" value={upiId} onChange={(e) => setUpiId(e.target.value)} required />
 
                         <div className="flex flex-col gap-4">
                             <Label className="text-slate-100 text-md font-semibold">Enter UPI PIN:</Label>
