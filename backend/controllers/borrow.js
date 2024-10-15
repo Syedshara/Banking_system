@@ -1,5 +1,6 @@
 import Lending from "../models/lending.js";
 import User from "../models/user.js";
+import Transaction from "../models/transaction.js"
 
 export const getLenders = async (req, res) => {
     try {
@@ -49,3 +50,17 @@ export const getLenders = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const addRequest = async (req, res) => {
+    try{
+
+        const {lender_id, borrower_id, amount} = req.body;
+        const transaction = new Transaction({lender_id, borrower_id, amount, transaction_status:"requested"});
+        await transaction.save();
+        res.status(201).json(transaction);
+
+    }catch(error){
+        res.status(500).json({ message: error.message });
+
+    }
+}
