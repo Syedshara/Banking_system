@@ -40,6 +40,10 @@ const LendMoney = () => {
     const validateInputs = () => {
         const { amount, duration, minInterest, maxInterest } = newBox;
 
+        // Convert inputs to numbers to avoid string comparison issues
+        const minInt = Number(minInterest);
+        const maxInt = Number(maxInterest);
+
         if (!amount || !duration || !minInterest || !maxInterest) {
             return "Please fill in all fields.";
         }
@@ -49,13 +53,13 @@ const LendMoney = () => {
         if (duration <= 0 || isNaN(duration)) {
             return "Duration should be greater than 0 months.";
         }
-        if (minInterest < 0 || isNaN(minInterest)) {
+        if (minInt < 0 || isNaN(minInt)) {
             return "Minimum interest should not be negative.";
         }
-        if (maxInterest <= 0 || isNaN(maxInterest)) {
+        if (maxInt <= 0 || isNaN(maxInt)) {
             return "Maximum interest should be a positive number.";
         }
-        if (minInterest > maxInterest) {
+        if (minInt >= maxInt) {
             return "Minimum interest should be less than maximum interest.";
         }
         return ""; // No error
@@ -138,7 +142,7 @@ const LendMoney = () => {
                         />
                     </div>
                     <div className="w-full mb-4">
-                        <label className="block text-blue-600">Minimum Interest (%)</label>
+                        <label className="block text-blue-600">Maximum Interest (%)</label>
                         <input
                             type="number"
                             name="minInterest"
@@ -148,7 +152,7 @@ const LendMoney = () => {
                         />
                     </div>
                     <div className="w-full mb-4">
-                        <label className="block text-blue-600">Maximum Interest (%)</label>
+                        <label className="block text-blue-600">Minimum Interest (%)</label>
                         <input
                             type="number"
                             name="maxInterest"
@@ -208,16 +212,16 @@ const LendMoney = () => {
                                 <div className="text-center">
                                     <p className="text-blue-600">Amount: <span className="font-semibold text-black">{box.amount}</span></p>
                                     <p className="text-blue-600">Duration: <span className="font-semibold text-black">{box.duration} months</span></p>
-                                    <p className="text-blue-600">Min Interest: <span className="font-semibold text-black">{box.minInterest}%</span></p>
-                                    <p className="text-blue-600">Max Interest: <span className="font-semibold text-black">{box.maxInterest}%</span></p>
+                                    <p className="text-blue-600">Max Interest: <span className="font-semibold text-black">{box.minInterest}%</span></p>
+                                    <p className="text-blue-600">Min Interest: <span className="font-semibold text-black">{box.maxInterest}%</span></p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* Button to add new box */}
-                    <div className="mt-4">
-                        <Button onClick={handleAddNewBox}>Add New Box</Button>
+                    {/* Add new box button */}
+                    <div className="mt-6 flex justify-center">
+                        <Button onClick={handleAddNewBox}>Add</Button>
                     </div>
                 </>
             )}
