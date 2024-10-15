@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import SideBar from '../component/SideBar';
-import TransferMoney from './TransferMoney';
-import ViewTransactions from './ViewTransactions';
-import ViewBalance from './ViewBalance';
+import TransferMoney from '../component/TransferMoney';
+import ViewTransactions from '../component/ViewTransactions';
+import ViewBalance from '../component/ViewBalance';
 
 const DashBoard = () => {
     const location = useLocation();
@@ -21,8 +21,8 @@ const DashBoard = () => {
             <div className='w-full md:w-56'>
                 <SideBar />
             </div>
-            {tag == 'transfer' && <TransferMoney />}
-            {tag == "transactions" && <ViewTransactions />}
+            {tag == 'borrow' && <TransferMoney />}
+            {tag == "lend" && <ViewTransactions />}
             {tag == "balance" && <ViewBalance />}
 
         </div>

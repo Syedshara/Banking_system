@@ -190,7 +190,7 @@ const Register = () => {
                             Register
                         </Button>
                     ) : (
-                        <Button type="submit" className="bg-black" gradientDuoTone="greenToBlue" >
+                        <Button type="submit" gradientDuoTone="greenToBlue" >
                             Next
                         </Button>
                     )}

@@ -21,7 +21,7 @@ function AppContent() {
         <Route path="/" element={<Entry />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/siderbar" element={<DashBoard />} />
+        <Route path="/main" element={<DashBoard />} />
       </Routes>
     </>
   );

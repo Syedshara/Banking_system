@@ -12,9 +12,9 @@ const Nav = () => {
                 className={` whitespace-nowrap text-lg sm:text-xl font-semibold text-blue-500 my-2 `}
             >
                 <span className='px-2 py-1 border-2 border-blue-500 rounded-lg text-black mx-1 text-lg sm:text-xl font-bold'>
-                    Online
+                    P2P
                 </span>
-                Banking
+                Lending
             </Link>
             <div className="flex md:order-2">
                 <Dropdown
