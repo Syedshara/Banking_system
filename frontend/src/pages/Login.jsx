@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Label, TextInput } from 'flowbite-react';
+import { useNavigate } from "react-router-dom"; 
 import img from '../assets/Login/img.jpg';
 
 const Login = () => {
     const [upiId, setUpiId] = useState("");
-    const [pin, setPin] = useState("");
+    const [pin, setPin] = useState(Array(6).fill("")); // Store each digit in an array
     const [errorMessage, setErrorMessage] = useState(""); // One unified error message
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false); // State to control visibility
+    const navigate = useNavigate(); // Initialize useNavigate
 
     // UPI ID validation regex
     const validateUpiId = (upiId) => /^[a-zA-Z0-9]+@[a-zA-Z0-9]+$/.test(upiId);
 
-    // PIN validation regex (6-digit numeric pin)
-    const validatePin = (pin) => /^\d{6}$/.test(pin);
+    // PIN validation
+    const validatePin = (pin) => pin.join("").length === 6; // Ensure all six digits are entered
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -27,7 +29,7 @@ const Login = () => {
         if (!upiId || !validateUpiId(upiId)) {
             setErrorMessage("Invalid UPI ID. Format should be like: example@upi.");
             valid = false;
-        } else if (!pin || !validatePin(pin)) {
+        } else if (!validatePin(pin)) {
             // Scenario 2: Only PIN is invalid
             setErrorMessage("Invalid PIN. Must be a 6-digit number.");
             valid = false;
@@ -53,6 +55,34 @@ const Login = () => {
         // Trigger visibility after the component mounts
         setIsVisible(true);
     }, []);
+
+    const handleBack = () => {
+        navigate('/'); // Replace with your actual route
+    };
+
+    const handlePinChange = (index, value) => {
+        const newPin = [...pin];
+        if (value.length <= 1) {
+            newPin[index] = value; // Set the digit
+            setPin(newPin);
+
+            // Move to the next input
+            if (value && index < 5) {
+                document.getElementById(`pin-${index + 1}`).focus();
+            }
+        }
+    };
+
+    const handlePinKeyDown = (index, e) => {
+        const newPin = [...pin];
+
+        // Move backwards if the backspace key is pressed
+        if (e.key === "Backspace" && index > 0 && !newPin[index]) {
+            newPin[index - 1] = ""; // Clear the previous input
+            setPin(newPin);
+            document.getElementById(`pin-${index - 1}`).focus();
+        }
+    };
 
     return (
         <div className="min-h-screen flex relative">
@@ -81,28 +111,45 @@ const Login = () => {
 
                         {/* PIN Input */}
                         <div className="w-full max-w-sm flex flex-col justify-center">
-                            <Label htmlFor="pin" className="text-slate-100 text-md font-semibold" value="Your PIN :" />
-                            <TextInput
-                                type="password"
-                                id="pin"
-                                placeholder="Enter 6-digit PIN"
-                                value={pin}
-                                onChange={(e) => setPin(e.target.value)}
-                                required
-                                className={`w-full max-w-md transition-transform duration-500 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}
-                            />
+                            <Label className="text-slate-100 text-md font-semibold">Your PIN :</Label>
+                            <div className="flex space-x-2">
+                                {pin.map((digit, index) => (
+                                    <TextInput
+                                        key={index}
+                                        type="password"
+                                        id={`pin-${index}`}
+                                        value={digit}
+                                        onChange={(e) => handlePinChange(index, e.target.value)}
+                                        onKeyDown={(e) => handlePinKeyDown(index, e)}
+                                        maxLength={1}
+                                        className="w-10 text-center"
+                                    />
+                                ))}
+                            </div>
                         </div>
 
-                        {/* Sign In Button */}
-                        <Button
-                            className={`w-full max-w-xs mt-5 transition-transform duration-500 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}
-                            gradientDuoTone='greenToBlue'
-                            type='submit'
-                            disabled={loading}
-                            size="lg"
-                        >
-                            {loading ? "Logging in..." : "Login"}
-                        </Button>
+                        {/* Button Container */}
+                        <div className="flex justify-between w-full max-w-xs mt-5">
+                            {/* Back Button */}
+                            <Button
+                                className="w-full"
+                                color="gray"
+                                onClick={handleBack}
+                                size="sm"
+                            >
+                                Back
+                            </Button>
+                            {/* Sign In Button */}
+                            <Button
+                                className="w-full ml-2"
+                                gradientDuoTone='greenToBlue'
+                                type='submit'
+                                disabled={loading}
+                                size="sm"
+                            >
+                                {loading ? "Logging in..." : "Login"}
+                            </Button>
+                        </div>
 
                         {/* Alert Box for Errors (Displayed under the login button) */}
                         {errorMessage && (
