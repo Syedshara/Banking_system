@@ -2,7 +2,7 @@ import User from '../models/user.js'; // Import the User model
 import bcryptjs from 'bcryptjs';
 
 export const createUser = async (req, res) => {
-    const { name, email, acc_number, pin, IFSC, upi_id } = req.body;
+    const { name, email, acc_number, pin, IFSC, upi_id, phone } = req.body;
 
     // Check if required fields are provided
     if (!name || !email || !acc_number || name.trim() === '' || email.trim() === '' || acc_number.trim() === '') {
@@ -19,6 +19,7 @@ export const createUser = async (req, res) => {
     const newUser = new User({
         name,
         email,
+        phone,
         bank_details: {
             acc_number, // Account number provided
             pin: hashedPin, // Use hashed pin
