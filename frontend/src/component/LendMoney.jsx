@@ -36,35 +36,40 @@ const LendMoney = () => {
         setErrorMessage(''); // Reset error message on input change
     };
 
-    // Function to validate input fields
+    // Function to validate input fields with priority error handling
     const validateInputs = () => {
         const { amount, duration, minInterest, maxInterest } = newBox;
-        const errors = [];
 
         if (!amount || !duration || !minInterest || !maxInterest) {
-            errors.push("Please fill in all fields.");
+            return "Please fill in all fields.";
         }
         if (amount <= 0 || isNaN(amount)) {
-            errors.push("Amount should be a positive number.");
+            return "Amount should be a positive number.";
         }
         if (duration <= 0 || isNaN(duration)) {
-            errors.push("Duration should be greater than 0 months.");
+            return "Duration should be greater than 0 months.";
         }
         if (minInterest < 0 || isNaN(minInterest)) {
-            errors.push("Minimum interest should not be negative.");
+            return "Minimum interest should not be negative.";
         }
         if (maxInterest <= 0 || isNaN(maxInterest)) {
-            errors.push("Maximum interest should be a positive number.");
+            return "Maximum interest should be a positive number.";
         }
-        if (minInterest >= maxInterest) {
-            errors.push("Minimum interest should be less than maximum interest.");
+        if (minInterest > maxInterest) {
+            return "Minimum interest should be less than maximum interest.";
         }
+        return ""; // No error
+    };
 
-        return errors.length > 0 ? errors.join(' ') : ""; // Return error messages
+    // Function to reset form fields
+    const resetForm = () => {
+        setNewBox({ amount: '', duration: '', minInterest: '', maxInterest: '' }); // Reset form fields
+        setErrorMessage(''); // Clear any previous error messages
     };
 
     // Function to go back to the grid without adding a box
     const handleBack = () => {
+        resetForm(); // Reset the form fields when going back
         setShowForm(false);
         setEditIndex(null); // Reset edit index when going back
     };
@@ -73,7 +78,7 @@ const LendMoney = () => {
     const handleNext = () => {
         const error = validateInputs();
         if (error) {
-            setErrorMessage(error); // Display error message if validation fails
+            setErrorMessage(error); // Display only one error message
             return;
         }
 
@@ -87,9 +92,15 @@ const LendMoney = () => {
             // Add new box
             setBoxes([...boxes, newBox]);
         }
-        setNewBox({ amount: '', duration: '', minInterest: '', maxInterest: '' }); // Reset form fields
+        resetForm(); // Reset form after submission
         setShowForm(false); // Go back to grid view
         setEditIndex(null); // Reset edit index
+    };
+
+    // Function to open the form for a new box and ensure the form is cleared
+    const handleAddNewBox = () => {
+        resetForm(); // Clear any previously entered values
+        setShowForm(true); // Show the form for adding a new box
     };
 
     // Function to initiate edit mode
@@ -193,20 +204,12 @@ const LendMoney = () => {
                                     </div>
                                 )}
 
-                                {/* Display user input values */}
-                                <div className="flex flex-col justify-center items-center space-y-2 text-center">
-                                    <p className="text-md font-medium text-blue-600">
-                                        Amount: <span className="font-semibold text-black">${box.amount}</span>
-                                    </p>
-                                    <p className="text-md font-medium text-blue-600">
-                                        Duration: <span className="font-semibold text-black">{box.duration} months</span>
-                                    </p>
-                                    <p className="text-md font-medium text-blue-600">
-                                        Min Interest: <span className="font-semibold text-black">{box.minInterest}%</span>
-                                    </p>
-                                    <p className="text-md font-medium text-blue-600">
-                                        Max Interest: <span className="font-semibold text-black">{box.maxInterest}%</span>
-                                    </p>
+                                {/* Box content */}
+                                <div className="text-center">
+                                    <p className="text-blue-600">Amount: <span className="font-semibold text-black">{box.amount}</span></p>
+                                    <p className="text-blue-600">Duration: <span className="font-semibold text-black">{box.duration} months</span></p>
+                                    <p className="text-blue-600">Min Interest: <span className="font-semibold text-black">{box.minInterest}%</span></p>
+                                    <p className="text-blue-600">Max Interest: <span className="font-semibold text-black">{box.maxInterest}%</span></p>
                                 </div>
                             </div>
                         ))}
@@ -214,7 +217,7 @@ const LendMoney = () => {
 
                     {/* Button to add new box */}
                     <div className="mt-4">
-                        <Button onClick={() => setShowForm(true)}>Add New Box</Button>
+                        <Button onClick={handleAddNewBox}>Add New Box</Button>
                     </div>
                 </>
             )}
