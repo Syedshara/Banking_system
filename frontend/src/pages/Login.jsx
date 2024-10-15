@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Label, TextInput } from 'flowbite-react';
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import img from '../assets/Login/img.jpg';
 
 const Login = () => {
@@ -19,38 +19,51 @@ const Login = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setErrorMessage(""); // Reset error message
-        setLoading(true); // Start loading state
+        setErrorMessage("");
+        setLoading(true);
 
-        // Validation flags
         let valid = true;
 
-        // Scenario 3: Both inputs are invalid (show UPI error only)
         if (!upiId || !validateUpiId(upiId)) {
             setErrorMessage("Invalid UPI ID. Format should be like: example@upi.");
             valid = false;
         } else if (!validatePin(pin)) {
-            // Scenario 2: Only PIN is invalid
             setErrorMessage("Invalid PIN. Must be a 6-digit number.");
             valid = false;
         }
 
         if (!valid) {
-            setLoading(false); // Stop loading if validation fails
+            setLoading(false);
             return;
         }
 
-        // Simulated API call for login
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            console.log("Login successful with UPI ID:", upiId);
+            const response = await fetch("http://localhost:3000/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    upi_id: upiId,
+                    pin: pin.join(""),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                console.log("Login successful with UPI ID:", data.user_id);
+                localStorage.setItem("user_id", data.user_id);
+                navigate("/main");
+            } else {
+                setErrorMessage(data.error || "Login failed. Please try again.");
+            }
         } catch (err) {
             setErrorMessage("Login failed. Please try again.");
         } finally {
-            setLoading(false); // Stop loading state
+            setLoading(false);
         }
     };
-
     useEffect(() => {
         // Trigger visibility after the component mounts
         setIsVisible(true);
