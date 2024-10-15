@@ -67,7 +67,7 @@ const Main = () => {
     };
 
     return (
-        <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-7xl pt-10">
+        <div className="p-5 w-full  mt-5 mb-5 max-w-7xl ml-10 pt-10">
             {/* Tabs for Borrower and Lender */}
             <div className="flex justify-between mb-5">
                 <Button onClick={() => setActiveTab('borrowers')} color={activeTab === 'borrowers' ? 'cyan' : 'gray'}>
