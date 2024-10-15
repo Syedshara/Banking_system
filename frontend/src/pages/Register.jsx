@@ -17,46 +17,95 @@ const Register = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // Validation functions
+    const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const validatePhoneNumber = (phoneNumber) => /^\d{10}$/.test(phoneNumber);
+    const validateAccountNumber = (accountNumber) => /^\d{9,18}$/.test(accountNumber); // Assuming account numbers are between 9 to 18 digits
+    const validateIfscNumber = (ifscNumber) => /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscNumber);
+    const validateUpiId = (upiId) => /^[a-zA-Z0-9]+@[a-zA-Z0-9]+$/.test(upiId); // Simple UPI format
+    const validatePin = (pin) => /^\d{6}$/.test(pin.join(""));
+
     const handlePinChange = (index, value, setPinFunc, pinArray) => {
         if (/^[0-9]?$/.test(value)) {
             const updatedPin = [...pinArray];
             updatedPin[index] = value;
             setPinFunc(updatedPin);
+    
             if (value !== "" && index < 5) {
-                document.getElementById(`pin-${index + 1}`).focus();
+                const nextInput = pinArray === pin ? `pin-${index + 1}` : `confirmPin-${index + 1}`;
+                document.getElementById(nextInput)?.focus();
             }
         }
     };
+    
 
     const handlePinDelete = (index, setPinFunc, pinArray) => {
         const updatedPin = [...pinArray];
-        updatedPin[index] = "";
-        setPinFunc(updatedPin);
-        if (index > 0) {
-            document.getElementById(`pin-${index - 1}`).focus();
+        if (updatedPin[index] === "") {
+            const prevInput = pinArray === pin ? `pin-${index - 1}` : `confirmPin-${index - 1}`;
+            document.getElementById(prevInput)?.focus();
+        } else {
+            updatedPin[index] = "";
+            setPinFunc(updatedPin);
         }
     };
+    
 
     const handleNext = () => {
-        if (step === 1 && (!fullName || !email || !phoneNumber)) {
-            setError("All personal details are required.");
-            return;
+        // Step 1 validation (Personal Details)
+        if (step === 1) {
+            if (!fullName || !email || !phoneNumber) {
+                setError("All personal details are required.");
+                return;
+            }
+            if (!validateEmail(email)) {
+                setError("Please enter a valid email address.");
+                return;
+            }
+            if (!validatePhoneNumber(phoneNumber)) {
+                setError("Phone number must be exactly 10 digits.");
+                return;
+            }
         }
-        if (step === 2 && (!accountNumber || !accountNumberConfirm || !ifscNumber || !bankName)) {
-            setError("All account details are required.");
-            return;
+
+        // Step 2 validation (Account Details)
+        if (step === 2) {
+            if (!accountNumber || !accountNumberConfirm || !ifscNumber || !bankName) {
+                setError("All account details are required.");
+                return;
+            }
+            if (!validateAccountNumber(accountNumber)) {
+                setError("Account number must be between 9 to 18 digits.");
+                return;
+            }
+            if (accountNumber !== accountNumberConfirm) {
+                setError("Account numbers do not match.");
+                return;
+            }
+            if (!validateIfscNumber(ifscNumber)) {
+                setError("Please enter a valid IFSC code.");
+                return;
+            }
         }
-        if (step === 2 && accountNumber !== accountNumberConfirm) {
-            setError("Account numbers do not match.");
-            return;
-        }
-        if (step === 3 && (!upiId || pin.includes("") || confirmPin.includes(""))) {
-            setError("UPI ID and both PINs must be filled out.");
-            return;
-        }
-        if (step === 3 && pin.join('') !== confirmPin.join('')) {
-            setError("PINs do not match.");
-            return;
+
+        // Step 3 validation (UPI & PIN)
+        if (step === 3) {
+            if (!upiId || pin.includes("") || confirmPin.includes("")) {
+                setError("UPI ID and both PINs must be filled out.");
+                return;
+            }
+            if (!validateUpiId(upiId)) {
+                setError("UPI ID must be in the format 'name@bank'.");
+                return;
+            }
+            if (!validatePin(pin)) {
+                setError("PIN must be exactly 6 digits.");
+                return;
+            }
+            if (pin.join('') !== confirmPin.join('')) {
+                setError("PINs do not match.");
+                return;
+            }
         }
 
         setError("");
@@ -105,7 +154,7 @@ const Register = () => {
                 }}
             />
             <div className="absolute inset-0 -z-40 bg-slate-950 opacity-70" />
-            <h1 className="text-3xl z-40  font-bold mb-4 text-green-400">Register as New User</h1>
+            <h1 className="text-3xl z-40 font-bold mb-4 text-green-400">Register as New User</h1>
 
             <form className="w-full max-w-lg flex flex-col gap-5 mt-5" onSubmit={step === 3 ? handleRegister : (e) => { e.preventDefault(); handleNext(); }}>
                 {step === 1 && (
@@ -125,10 +174,10 @@ const Register = () => {
                 {step === 2 && (
                     <>
                         <h2 className="text-xl font-semibold mb-2">Account Details</h2>
-                        <Label htmlFor="accountNumber" className="text-slate-100 text-md font-semibold">Account Number (Visible):</Label>
+                        <Label htmlFor="accountNumber" className="text-slate-100 text-md font-semibold">Account Number:</Label>
                         <TextInput type="text" id="accountNumber" placeholder="Enter your account number" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
 
-                        <Label htmlFor="accountNumberConfirm" className="text-slate-100 text-md font-semibold">Account Number (Password):</Label>
+                        <Label htmlFor="accountNumberConfirm" className="text-slate-100 text-md font-semibold">Re-enter your Account Number:</Label>
                         <TextInput type="password" id="accountNumberConfirm" placeholder="Re-enter your account number" value={accountNumberConfirm} onChange={(e) => setAccountNumberConfirm(e.target.value)} required />
 
                         <Label htmlFor="ifscNumber" className="text-slate-100 text-md font-semibold">IFSC Number:</Label>
@@ -141,68 +190,57 @@ const Register = () => {
 
                 {step === 3 && (
                     <>
-                        <h2 className="text-xl font-semibold mb-2">Create UPI ID and PIN</h2>
+                        <h2 className="text-xl font-semibold mb-2">UPI & PIN</h2>
                         <Label htmlFor="upiId" className="text-slate-100 text-md font-semibold">UPI ID:</Label>
-                        <TextInput type="text" id="upiId" placeholder="example@upi" value={upiId} onChange={(e) => setUpiId(e.target.value)} required />
+                        <TextInput type="text" id="upiId" placeholder="Enter your UPI ID" value={upiId} onChange={(e) => setUpiId(e.target.value)} required />
 
-                        <Label className="text-slate-100 text-md font-semibold">Create PIN:</Label>
-                        <div className="flex gap-2">
-                            {pin.map((digit, index) => (
-                                <TextInput
-                                    key={index}
-                                    type="text"
-                                    id={`pin-${index}`}
-                                    value={digit}
-                                    maxLength={1}
-                                    className="w-10 text-center"
-                                    onChange={(e) => handlePinChange(index, e.target.value, setPin, pin)}
-                                    onKeyDown={(e) => e.key === "Backspace" && handlePinDelete(index, setPin, pin)}
-                                />
-                            ))}
+                        <div className="flex flex-col gap-4">
+                            <Label className="text-slate-100 text-md font-semibold">Enter UPI PIN:</Label>
+                            <div className="flex gap-2">
+                                {pin.map((digit, index) => (
+                                    <TextInput
+                                        key={index}
+                                        id={`pin-${index}`}
+                                        value={digit}
+                                        type="password"
+                                        maxLength={1}
+                                        className="w-10 text-center"
+                                        onChange={(e) => handlePinChange(index, e.target.value, setPin, pin)}
+                                        onKeyDown={(e) => e.key === "Backspace" && handlePinDelete(index, setPin, pin)}
+                                        required
+                                    />
+                                ))}
+                            </div>
                         </div>
 
-                        <Label className="text-slate-100 text-md font-semibold">Confirm PIN:</Label>
-                        <div className="flex gap-2">
-                            {confirmPin.map((digit, index) => (
-                                <TextInput
-                                    key={index}
-                                    type="password"
-                                    id={`confirm-pin-${index}`}
-                                    value={digit}
-                                    maxLength={1}
-                                    className="w-10 text-center"
-                                    onChange={(e) => handlePinChange(index, e.target.value, setConfirmPin, confirmPin)}
-                                    onKeyDown={(e) => e.key === "Backspace" && handlePinDelete(index, setConfirmPin, confirmPin)}
-                                />
-                            ))}
+                        <div className="flex flex-col gap-4 mt-4">
+                            <Label className="text-slate-100 text-md font-semibold">Confirm UPI PIN:</Label>
+                            <div className="flex gap-2">
+                                {confirmPin.map((digit, index) => (
+                                    <TextInput
+                                        key={index}
+                                        id={`confirmPin-${index}`}
+                                        value={digit}
+                                        type="password"
+                                        maxLength={1}
+                                        className="w-10 text-center"
+                                        onChange={(e) => handlePinChange(index, e.target.value, setConfirmPin, confirmPin)}
+                                        onKeyDown={(e) => e.key === "Backspace" && handlePinDelete(index, setConfirmPin, confirmPin)}
+                                        required
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </>
                 )}
 
-                <div className="flex justify-between mt-4">
-                    {step > 1 && (
-                        <Button type="button" color="gray" onClick={handleBack}>
-                            Back
-                        </Button>
-                    )}
-                    {step === 3 ? (
-                        <Button type="submit" color="green
 
-" isLoading={loading} disabled={loading}>
-                            Register
-                        </Button>
-                    ) : (
-                        <Button type="submit" color="green">
-                            Next
-                        </Button>
-                    )}
+                {error && <Alert color="failure" className="mb-2"><span>{error}</span></Alert>}
+                
+                <div className="flex justify-between">
+                    <Button color="gray" onClick={handleBack} disabled={step === 1}>Back</Button>
+                    {step === 3 ? <Button type="submit" isProcessing={loading} gradientDuoTone="greenToBlue">Register</Button> : <Button type="submit" gradientDuoTone="greenToBlue">Next</Button>}
                 </div>
-
-                {error && (
-                    <Alert color="failure" className="mt-4">
-                        {error}
-                    </Alert>
-                )}
             </form>
         </div>
     );
