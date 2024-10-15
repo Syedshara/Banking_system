@@ -10,6 +10,13 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    phone: {
+        type: String,
+        required: true,
+        unique: true,
+        length: 10,
+
+    },
     bank_details: {
         acc_number: {
             type: String,
