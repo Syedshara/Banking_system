@@ -125,13 +125,6 @@ const Register = () => {
         e.preventDefault();
         setLoading(true);
 
-        // Additional validation for PINs matching
-        if (pin.join('') !== confirmPin.join('')) {
-            setError("PINs do not match.");
-            setLoading(false); // Stop loading
-            return; // Exit if the PINs don't match
-        }
-
         const userData = {
             name: fullName,
             email,
@@ -143,10 +136,23 @@ const Register = () => {
         };
 
         console.log("Registering user with data:", userData);
+
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            console.log("Registration successful!");
-            navigate('/main.jsx');
+            const response = await fetch('http://localhost:3000/auth/register', { // Make sure to include http://
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData),
+            });
+
+            if (!response.ok) {
+                throw new Error('Registration failed. Please try again.');
+            }
+
+            const data = await response.json();
+            console.log("Registration successful!", data);
+            navigate('/main');
         } catch (err) {
             setError(err.message);
         } finally {
