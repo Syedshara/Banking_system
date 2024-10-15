@@ -122,7 +122,7 @@ const LendMoney = () => {
                 <div className="flex flex-col justify-center items-center bg-white shadow-lg p-6 rounded-lg" style={{ width: '400px', margin: 'auto' }}>
                     {/* Form fields */}
                     <div className="w-full mb-4">
-                        <label className="block text-blue-600">Amount</label>
+                        <label className="block">Amount</label>
                         <input
                             type="number"
                             name="amount"
@@ -132,7 +132,7 @@ const LendMoney = () => {
                         />
                     </div>
                     <div className="w-full mb-4">
-                        <label className="block text-blue-600">Duration (months)</label>
+                        <label className="block">Duration (months)</label>
                         <input
                             type="number"
                             name="duration"
@@ -142,7 +142,7 @@ const LendMoney = () => {
                         />
                     </div>
                     <div className="w-full mb-4">
-                        <label className="block text-blue-600">Maximum Interest (%)</label>
+                        <label className="block">Minimum Interest (%)</label>
                         <input
                             type="number"
                             name="minInterest"
@@ -152,7 +152,7 @@ const LendMoney = () => {
                         />
                     </div>
                     <div className="w-full mb-4">
-                        <label className="block text-blue-600">Minimum Interest (%)</label>
+                        <label className="block">Maximum Interest (%)</label>
                         <input
                             type="number"
                             name="maxInterest"
@@ -169,20 +169,20 @@ const LendMoney = () => {
 
                     <div className="flex justify-between w-full mt-4">
                         <Button onClick={handleBack} color="gray">Back</Button>
-                        <Button onClick={handleNext}>Next</Button>
+                        <Button onClick={handleNext} gradientDuoTone='greenToBlue'>Next</Button>
                     </div>
                 </div>
             ) : (
                 <>
                     {/* Scrollable container with grid layout for boxes */}
-                    <div className="grid grid-cols-3 gap-6 overflow-y-auto" style={{ width: 'calc(100% - 20px)' }}>
+                    <div className="grid grid-cols-3 gap-6 overflow-y-auto" style={{ width: 'calc(100% - 20px)', marginLeft: '5%' }}>
                         {boxes.map((box, index) => (
                             <div
                                 key={index}
                                 className="bg-white shadow-lg rounded-lg p-4 relative flex flex-col justify-center items-center"
                                 style={{
                                     height: '200px',
-                                    width: '100%',
+                                    width: '80%',
                                 }}
                             >
                                 {/* Three dots for menu options */}
@@ -209,11 +209,27 @@ const LendMoney = () => {
                                 )}
 
                                 {/* Box content */}
-                                <div className="text-center">
-                                    <p className="text-blue-600">Amount: <span className="font-semibold text-black">{box.amount}</span></p>
-                                    <p className="text-blue-600">Duration: <span className="font-semibold text-black">{box.duration} months</span></p>
-                                    <p className="text-blue-600">Max Interest: <span className="font-semibold text-black">{box.minInterest}%</span></p>
-                                    <p className="text-blue-600">Min Interest: <span className="font-semibold text-black">{box.maxInterest}%</span></p>
+                                <div className="space-y-2">
+                                    <div className="flex">
+                                        <p className="font-semibold text-black w-[120px]">Amount</p>
+                                        <p className="font-semibold text-black w-[10px]">:</p>
+                                        <p className="font-normal">{box.amount}</p>
+                                    </div>
+                                    <div className="flex">
+                                        <p className="font-semibold text-black w-[120px]">Duration</p>
+                                        <p className="font-semibold text-black w-[10px]">:</p>
+                                        <p className="font-normal">{box.duration} months</p>
+                                    </div>
+                                    <div className="flex">
+                                        <p className="font-semibold text-black w-[120px]">Max Interest</p>
+                                        <p className="font-semibold text-black w-[10px]">:</p>
+                                        <p className="font-normal">{box.minInterest}%</p>
+                                    </div>
+                                    <div className="flex">
+                                        <p className="font-semibold text-black w-[120px]">Min Interest</p>
+                                        <p className="font-semibold text-black w-[10px]">:</p>
+                                        <p className="font-normal">{box.maxInterest}%</p>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -221,7 +237,7 @@ const LendMoney = () => {
 
                     {/* Add new box button */}
                     <div className="mt-6 flex justify-center">
-                        <Button onClick={handleAddNewBox}>Add</Button>
+                        <Button onClick={handleAddNewBox} gradientDuoTone='greenToBlue'>Add</Button>
                     </div>
                 </>
             )}
