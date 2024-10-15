@@ -43,11 +43,7 @@ const ViewBalance = () => {
     useEffect(() => {
         const userId = localStorage.getItem("user_id");
         if (userId) {
-<<<<<<< HEAD
-            fetch(`http://localhost:3000/users/${userId}`)
-=======
             fetch(`http://10.16.58.118:3000/users/${userId}`)
->>>>>>> b97890f6a3e8d25389ec5d5dff29fdea7e726cd7
                 .then(response => response.json())
                 .then(data => {
                     setBalance(data.bank_details.balance);
@@ -106,13 +102,10 @@ const ViewBalance = () => {
                 <div className="mt-5">
                     <Card className="text-center">
                         <h3 className="text-xl font-semibold mb-3">Available Balance</h3>
-<<<<<<< HEAD
                         <p className="text-2xl text-green-600 font-bold">
                             {balance.toLocaleString()} {/* Format balance with commas */}
                         </p>
-=======
                         <p className="text-2xl text-green-600 font-bold">{"₹" + balance}</p>
->>>>>>> b97890f6a3e8d25389ec5d5dff29fdea7e726cd7
                         <Button
                             type="button"
                             className="mx-auto mt-6 font-bold"
