@@ -5,6 +5,7 @@ import cors from 'cors'; // Import cors
 import path from 'path';
 import auth from './routes/auth.js';
 import lend from './routes/lending.js';
+import user from './routes/user.js'
 
 dotenv.config();
 const __dirname = path.resolve();
@@ -29,4 +30,5 @@ mongoose.connect(process.env.URL_DB)
 
 // Define routes
 app.use('/auth', auth);
+app.use('/users', user);
 app.use('/lend', lend);

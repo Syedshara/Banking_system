@@ -10,13 +10,18 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    phone: {
+        type: String,
+        required: true,
+        unique: true,
+        length: 10,
+    },
     bank_details: {
         acc_number: {
             type: String,
             required: true,
-            length: 11, // Ensure it's 11 digits
             validate: {
-                validator: (v) => /^\d{11}$/.test(v), // Regular expression to ensure 11-digit format
+                validator: (v) => /^\d{9,18}$/.test(v), // Allowing 9 to 18 digits
                 message: props => `${props.value} is not a valid account number!`
             }
         },
@@ -40,6 +45,6 @@ const userSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('NewUser', userSchema);
 
 export default User;

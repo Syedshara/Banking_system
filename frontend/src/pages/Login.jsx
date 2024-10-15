@@ -38,7 +38,7 @@ const Login = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:3000/auth/login", {
+            const response = await fetch("http://10.16.58.118:3000/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -52,8 +52,8 @@ const Login = () => {
             const data = await response.json();
 
             if (response.ok) {
-                console.log("Login successful with UPI ID:", data.user_id);
-                localStorage.setItem("user_id", data.user_id);
+                console.log("Login successful with UPI ID:", data);
+                localStorage.setItem("user_id", data.userId);
                 navigate("/main");
             } else {
                 setErrorMessage(data.error || "Login failed. Please try again.");
