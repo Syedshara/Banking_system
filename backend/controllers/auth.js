@@ -4,9 +4,7 @@ import bcryptjs from 'bcryptjs';
 export const createUser = async (req, res) => {
     const { name, email, acc_number, pin, IFSC, upi_id, phone } = req.body;
 
-    if (!name || !email || !acc_number || name.trim() === '' || email.trim() === '' || acc_number.trim() === '') {
-        return res.status(400).json({ error: 'Fill all the fields.' });
-    }
+     
 
     try {
         const existingUser = await User.findOne({
@@ -19,6 +17,7 @@ export const createUser = async (req, res) => {
         });
 
         if (existingUser) {
+            console.log("User already exists !")
             return res.status(400).json({ error: 'User already exists with this email, phone number, account number, or UPI ID.' });
         }
 
