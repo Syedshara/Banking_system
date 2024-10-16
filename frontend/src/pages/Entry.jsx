@@ -1,23 +1,21 @@
-// src/pages/Entry.jsx
-import React, { useEffect, useState } from 'react'; // Import useEffect and useState
+import React, { useEffect, useState } from 'react'; 
 import { Button } from "flowbite-react";
 import { useNavigate, Link } from 'react-router-dom';
 
 const Entry = () => {
     const navigate = useNavigate();
-    const [showAnimation, setShowAnimation] = useState(false); // State to control animations
+    const [showAnimation, setShowAnimation] = useState(false); 
 
     useEffect(() => {
-        // Trigger animations after the component mounts
         setShowAnimation(true);
     }, []);
 
     const handleExistedUser = () => {
-        navigate('/login'); // Navigate to the login page
+        navigate('/login');
     };
 
     const handleNewUser = () => {
-        navigate('/register'); // Navigate to the registration page
+        navigate('/register'); 
     };
 
     return (
@@ -25,14 +23,13 @@ const Entry = () => {
             <div
                 className="absolute inset-0 bg-cover bg-center -z-50"
                 style={{
-                    backgroundImage: "url('https://www.invest19.com/blog/wp-content/uploads/2020/04/should-bet-on-banking-sector-1.jpg')", // Replace with your image URL
+                    backgroundImage: "url('https://www.invest19.com/blog/wp-content/uploads/2020/04/should-bet-on-banking-sector-1.jpg')",
                     opacity: 0.8,
                 }}
             />
             <div
-                className="absolute inset-0 -z-40 bg-slate-950 opacity-70" // Adjust opacity for shade effect
+                className="absolute inset-0 -z-40 bg-slate-950 opacity-70"
             />
-            {/* Logo with animation from top */}
             <div className='w-full max-w-2xl flex flex-col gap-5 justify-center items-start'>
                 <Link
                     to='/'
@@ -43,12 +40,9 @@ const Entry = () => {
                     </span>
                     Lending
                 </Link>
-
-                {/* Project description */}
                 <p className="text-start text-white text-md sm:text-lg mb-5 ">
                          Welcome to the P2P Lending Platform! This application allows users to seamlessly connect for peer-to-peer lending. Whether you're looking to borrow or lend money, our platform provides a secure and efficient way to manage your financial transactions. Join us today and experience the future of lending with transparent and user-friendly services. 
                 </p>
-                {/* Buttons with animation from bottom */}
                 <div className={`flex gap-5 ${showAnimation ? 'animate-slide-up' : ''}`}>
                     <Button gradientDuoTone="purpleToBlue" onClick={handleExistedUser}>
                         Existing User

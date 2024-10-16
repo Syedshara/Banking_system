@@ -4,7 +4,7 @@ import { Card, Table, Dropdown } from 'flowbite-react';
 
 const ViewTransactions = () => {
     const [transactions, setTransactions] = useState([]);
-    const [filter, setFilter] = useState('All'); // Default filter
+    const [filter, setFilter] = useState('All'); 
 
     useEffect(() => {
         const fetchTransactions = async () => {
@@ -12,8 +12,6 @@ const ViewTransactions = () => {
                 const userId = localStorage.getItem('user_id');
                 const response = await fetch(`http://10.16.58.118:3000/users/transaction_history/${userId}`);
                 const data = await response.json();
-
-                // Ensure we exclude 'requested' role and apply filter for status
                 let filteredData = data.filter(transaction => transaction.status !== 'requested');
                 if (filter !== 'All') {
                     filteredData = filteredData.filter(transaction => transaction.status === filter);
