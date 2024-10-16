@@ -10,9 +10,11 @@ export const createUser = async (req, res) => {
         upiId,
         pin } = req.body;
 
+
     if (!fullName || !email || !accountNumber) {
         return res.status(400).json({ error: 'Fill all the fields.' });
     }
+
 
     try {
         const existingUser = await User.findOne({
@@ -25,6 +27,7 @@ export const createUser = async (req, res) => {
         });
 
         if (existingUser) {
+            console.log("User already exists !")
             return res.status(400).json({ error: 'User already exists with this email, phone number, account number, or UPI ID.' });
         }
 
