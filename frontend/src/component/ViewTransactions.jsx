@@ -10,7 +10,7 @@ const ViewTransactions = () => {
         const fetchTransactions = async () => {
             try {
                 const userId = localStorage.getItem('user_id');
-                const response = await fetch(`http://localhost:3000/users/transaction_history/${userId}`);
+                const response = await fetch(`http://10.16.58.118:3000/users/transaction_history/${userId}`);
                 const data = await response.json();
 
                 // Ensure we exclude 'requested' role and apply filter for status
@@ -90,7 +90,7 @@ const ViewTransactions = () => {
                     </Table.Body>
                 </Table>
             </Card>
-            
+
         </div>
     );
 };

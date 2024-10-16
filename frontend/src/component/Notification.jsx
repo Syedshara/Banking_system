@@ -8,10 +8,10 @@ const Notification = () => {
         const fetchNotifications = async () => {
             try {
                 const userId = localStorage.getItem('user_id');
-                const response = await fetch(`http://localhost:3000/users/notification/${userId}`);
+                const response = await fetch(`http://10.16.58.118:3000/users/notification/${userId}`);
                 const data = await response.json();
 
-                console.log({data});
+                console.log({ data });
 
                 setNotifications(data);
             } catch (error) {

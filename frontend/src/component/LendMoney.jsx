@@ -272,11 +272,11 @@ const LendMoney = () => {
                                             <HiDotsVertical />
                                         </button>
                                         {showMenu === index && (
-                                            <div className="absolute right-2 top-8 bg-white border border-gray-300 rounded shadow-lg">
-                                                <Button onClick={() => handleEdit(index)} className="block text-left px-4 py-2 hover:bg-gray-100">
+                                            <div className="absolute right-4 top-6   ">
+                                                <Button onClick={() => handleEdit(index)} size='xs' color='gray' className=" text-left px-4 py-2 w-16 hover:bg-gray-100 mb-1">
                                                     Edit
                                                 </Button>
-                                                <Button onClick={() => handleDelete(index)} className="block text-left px-4 py-2 hover:bg-gray-100">
+                                                <Button onClick={() => handleDelete(index)} color='gray' size='xs' className=" text-left px-4 py-2 w-16 hover:bg-gray-100">
                                                     Delete
                                                 </Button>
                                             </div>
