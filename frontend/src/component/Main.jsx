@@ -4,32 +4,7 @@ import React, { useEffect, useState } from 'react';
 const Main = () => {
     // State to manage borrowers and lenders
     const [borrowers, setBorrowers] = useState([]);
-    const [lenders, setLenders] = useState([
-        {
-            id: 5,
-            name: 'Bob Brown',
-            amount: 7000,
-            interestRate: 5.2,
-        },
-        {
-            id: 6,
-            name: 'David Black',
-            amount: 9000,
-            interestRate: 6.5,
-        },
-        {
-            id: 7,
-            name: 'Emily White',
-            amount: 11000,
-            interestRate: 4.8,
-        },
-        {
-            id: 8,
-            name: 'Frank Blue',
-            amount: 13000,
-            interestRate: 7.5,
-        },
-    ]);
+    const [lenders, setLenders] = useState([]);
 
     // State to manage which box is currently visible
     const [activeTab, setActiveTab] = useState('borrowers');
@@ -63,6 +38,36 @@ const Main = () => {
         fetchBorrowers();
     }, []); // Empty dependency array ensures this runs only once on component mount
 
+    // Fetch lender data from the backend API
+    useEffect(() => {
+        const fetchLenders = async () => {
+            const userId = localStorage.getItem('user_id'); // Get user_id from local storage
+            if (!userId) {
+                console.error('User ID not found in local storage.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://10.16.58.118:3000/borrow/requested_transactions/${userId}`); // Pass user_id to the API endpoint
+                const data = await response.json();
+
+                const formattedLenders = data.map((transaction) => ({
+                    id: transaction.transactionId, // Use transaction ID as the identifier
+                    lenderName: transaction.lenderName,
+                    lenderID: transaction.lenderID,
+                    lendingId: transaction.lending_id, // Lender's lending ID
+                    amount: transaction.amount, // Requested amount
+                    interestRate: transaction.interestRate, // Max interest rate
+                }));
+                setLenders(formattedLenders);
+            } catch (error) {
+                console.error('Error fetching lenders:', error);
+            }
+        };
+
+        fetchLenders();
+    }, []); // Empty dependency array ensures this runs only once on component mount
+
     // Handle accept or decline request function
     const handleAcceptRequest = async (request, actionType) => {
         const payload = {
@@ -81,7 +86,7 @@ const Main = () => {
 
             const result = await response.json();
             if (response.ok) {
-                alert(`Request ${actionType}ed for ${request.name}`);
+                alert(`Request ${actionType}ed for ${request.lenderName || request.name}`);
             } else {
                 console.error('Error processing request:', result);
                 alert('Something went wrong. Please try again.');
@@ -154,7 +159,7 @@ const Main = () => {
                                 {/* Lender Name */}
                                 <div className="mb-3">
                                     <p className="text-lg font-semibold">Lender Name:</p>
-                                    <p className="text-md">{lender.name}</p>
+                                    <p className="text-md">{lender.lenderName}</p>
                                 </div>
 
                                 {/* Amount */}
