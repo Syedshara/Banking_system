@@ -88,7 +88,7 @@ export const addRequest = async (req, res) => {
         );
 
         // Log the updated lending for debugging
-        console.log('Updated Lending:', updatedLending);
+
 
         res.status(201).json({ message: 'Lender requested successfully.', transaction });
     } catch (error) {
