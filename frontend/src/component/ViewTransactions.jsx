@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Dropdown } from 'flowbite-react';
 
+
 const ViewTransactions = () => {
     const [transactions, setTransactions] = useState([]);
     const [filter, setFilter] = useState('All'); // Default filter
@@ -93,6 +94,7 @@ const ViewTransactions = () => {
                     </Table.Body>
                 </Table>
             </Card>
+            
         </div>
     );
 };
