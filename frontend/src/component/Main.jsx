@@ -44,7 +44,7 @@ const Main = () => {
             }
 
             try {
-                const response = await fetch(`http://10.16.58.118:3000/users/lending_requests/670e6234bcfe2a58e7c8cdef`); // Pass user_id to the API endpoint
+                const response = await fetch(`http://10.16.58.118:3000/users/lending_requests/${userId}`); // Pass user_id to the API endpoint
                 const data = await response.json();
 
                 const formattedBorrowers = data.map((item) => ({
