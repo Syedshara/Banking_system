@@ -32,22 +32,22 @@ const SideBar = () => {
         <Sidebar aria-label="Default sidebar example" className="min-h-screen">
             <Sidebar.Items>
                 <Sidebar.ItemGroup>
-                    <Sidebar.Item icon={RiUserReceived2Fill} active={tag === 'borrow' || !tag} onClick={() => handleNavigation('borrow')}>
+                    <Sidebar.Item icon={RiUserReceived2Fill} className='cursor-pointer' active={tag === 'borrow' || !tag} onClick={() => handleNavigation('borrow')}>
                         Borrow Money
                     </Sidebar.Item>
-                    <Sidebar.Item icon={RiSendPlaneFill} active={tag === 'lend'} onClick={() => handleNavigation('lend')}>
+                    <Sidebar.Item icon={RiSendPlaneFill} className='cursor-pointer' active={tag === 'lend'} onClick={() => handleNavigation('lend')}>
                         Lend Money
                     </Sidebar.Item>
-                    <Sidebar.Item icon={GrTransaction} onClick={() => handleNavigation('transactions')}>
+                    <Sidebar.Item icon={GrTransaction} className='cursor-pointer' onClick={() => handleNavigation('transactions')}>
                         View Transactions
                     </Sidebar.Item>
-                    <Sidebar.Item icon={MdAccountBalanceWallet} onClick={() => handleNavigation('balance')}>
+                    <Sidebar.Item icon={MdAccountBalanceWallet} className='cursor-pointer' onClick={() => handleNavigation('balance')}>
                         View Balance
                     </Sidebar.Item>
-                    <Sidebar.Item icon={MdNotificationsActive} onClick={() => handleNavigation('notification')}>
+                    <Sidebar.Item icon={MdNotificationsActive} className='cursor-pointer' onClick={() => handleNavigation('notification')}>
                         Notifications
                     </Sidebar.Item>
-                    <Sidebar.Item icon={HiLogout} onClick={handleLogout}>
+                    <Sidebar.Item icon={HiLogout} onClick={handleLogout} className='cursor-pointer'>
                         Logout
                     </Sidebar.Item>
                 </Sidebar.ItemGroup>
