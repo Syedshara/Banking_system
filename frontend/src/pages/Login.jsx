@@ -54,7 +54,7 @@ const Login = () => {
             if (response.ok) {
                 console.log("Login successful with UPI ID:", data.userId);
                 localStorage.setItem("user_id", data.userId);
-                navigate("/main");
+                navigate("/main?tag=home");
             } else {
                 setErrorMessage(data.error || "Login failed. Please try again.");
             }
