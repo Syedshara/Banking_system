@@ -255,29 +255,35 @@ const LendMoney = () => {
                     <>
                         <h1 className="text-xl font-bold mb-6">Lending Boxes</h1>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {boxes.map((box, index) => (
-                                <div key={index} className="bg-white shadow-md rounded-lg p-4 relative">
-                                    <h2 className="text-lg font-semibold">{`Amount: ₹${box.amount}`}</h2>
-                                    <p>{`Duration: ${box.duration} months`}</p>
-                                    <p>{`Min Interest: ${box.min_interest}%`}</p>
-                                    <p>{`Max Interest: ${box.max_interest}%`}</p>
-                                    <button
-                                        onClick={() => toggleMenu(index)}
-                                        className="absolute top-2 right-2 text-gray-500 focus:outline-none">
-                                        <HiDotsVertical />
-                                    </button>
-                                    {showMenu === index && (
-                                        <div className="absolute right-2 top-8 bg-white border border-gray-300 rounded shadow-lg">
-                                            <Button onClick={() => handleEdit(index)} className="block text-left px-4 py-2 hover:bg-gray-100">
-                                                Edit
-                                            </Button>
-                                            <Button onClick={() => handleDelete(index)} className="block text-left px-4 py-2 hover:bg-gray-100">
-                                                Delete
-                                            </Button>
-                                        </div>
-                                    )}
+                            {boxes.length === 0 ? (
+                                <div className="col-span-1 sm:col-span-2 md:col-span-3 flex items-center justify-center">
+                                    <h2 className='text-xl'>No records found</h2>
                                 </div>
-                            ))}
+                            ) : (
+                                boxes.map((box, index) => (
+                                    <div key={index} className="bg-white shadow-md rounded-lg p-4 relative">
+                                        <h2 className="text-lg font-semibold">{`Amount: ₹${box.amount}`}</h2>
+                                        <p>{`Duration: ${box.duration} months`}</p>
+                                        <p>{`Min Interest: ${box.min_interest}%`}</p>
+                                        <p>{`Max Interest: ${box.max_interest}%`}</p>
+                                        <button
+                                            onClick={() => toggleMenu(index)}
+                                            className="absolute top-2 right-2 text-gray-500 focus:outline-none">
+                                            <HiDotsVertical />
+                                        </button>
+                                        {showMenu === index && (
+                                            <div className="absolute right-2 top-8 bg-white border border-gray-300 rounded shadow-lg">
+                                                <Button onClick={() => handleEdit(index)} className="block text-left px-4 py-2 hover:bg-gray-100">
+                                                    Edit
+                                                </Button>
+                                                <Button onClick={() => handleDelete(index)} className="block text-left px-4 py-2 hover:bg-gray-100">
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
                         </div>
                         <Button gradientDuoTone="greenToBlue" onClick={handleAddNewBox} size='lg' className="mt-6 mx-auto w-44">
                             Add New Lending

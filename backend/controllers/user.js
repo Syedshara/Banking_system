@@ -72,6 +72,7 @@ export const actionOnLendingStatus = async (req, res) => {
 
         // Find the transaction using the provided transaction_id
         const transaction = await Transaction.findById(transaction_id);
+        console.log(transaction);
         if (!transaction) {
             return res.status(404).json({ message: 'Transaction not found' });
         }
@@ -89,6 +90,11 @@ export const actionOnLendingStatus = async (req, res) => {
             if (!lender) {
                 return res.status(404).json({ message: 'Lender not found' });
             }
+            const borrower = await User.findById(transaction.borrower_id);
+            if (!borrower) {
+                return res.status(404).json({ message: 'Borrower not found' });
+            }
+
 
             // Step 3: Check if the lender has sufficient balance
             if (lender.bank_details.balance < transaction.amount) {
@@ -98,6 +104,11 @@ export const actionOnLendingStatus = async (req, res) => {
             // Step 4: Deduct the loan amount from the lender's balance
             lender.bank_details.balance -= transaction.amount;
             await lender.save();
+
+            borrower.bank_details.balance += transaction.amount;
+            await borrower.save();
+
+
 
             // Step 5: Update the status of the accepted transaction
             transaction.transaction_status = "pending";
@@ -173,7 +184,7 @@ export const getTransactionHistory = async (req, res) => {
 export const getNotifications = async (req, res) => {
     try {
         const userId = req.params.id; // Get the user ID from the request parameters
-        
+
         // Step 1: Fetch all transactions where the user is a borrower
         const transactions = await Transaction.find({ borrower_id: userId });
 
@@ -188,10 +199,10 @@ export const getNotifications = async (req, res) => {
         for (const transaction of transactions) {
             // Fetch the lending details manually
             const lending = await Lending.findById(transaction.lending_id); // Using transaction.lending_id directly
-            
+
             // Debug log to check fetched lending
             //console.log("Fetched Lending: ", lending);
-            
+
             if (!lending) {
                 continue; // Skip if no lending found
             }
@@ -227,7 +238,7 @@ export const getNotifications = async (req, res) => {
             //console.log("Due Date: ", dueDate);
 
             // Check for Payment Reminders (3 days before due date)
-            
+
 
 
             const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);

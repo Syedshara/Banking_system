@@ -25,34 +25,9 @@ const Main = () => {
     const [user_pin, setPin] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
-    
-    
-    const [lenders, setLenders] = useState([
-        {
-            id: 5,
-            name: 'Bob Brown',
-            amount: 7000,
-            interestRate: 5.2,
-        },
-        {
-            id: 6,
-            name: 'David Black',
-            amount: 9000,
-            interestRate: 6.5,
-        },
-        {
-            id: 7,
-            name: 'Emily White',
-            amount: 11000,
-            interestRate: 4.8,
-        },
-        {
-            id: 8,
-            name: 'Frank Blue',
-            amount: 13000,
-            interestRate: 7.5,
-        },
-    ]);
+
+
+    const [lenders, setLenders] = useState([]);
 
 
     // State to manage which box is currently visible
