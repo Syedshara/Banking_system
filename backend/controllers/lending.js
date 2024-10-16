@@ -73,7 +73,7 @@ export const updateLending = async (req, res) => {
 export const getUserLendings = async (req, res) => {
     try {
         const { userId } = req.params;
-        const test = {user_id:"670e2ae6a5ea1ce5617c0bc9"};
+        const test = { user_id: userId };
         const lendings = await Lending.find(test);
         res.status(200).json(lendings);
     } catch (error) {

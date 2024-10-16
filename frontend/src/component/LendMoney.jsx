@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HiDotsVertical } from 'react-icons/hi'; // For the three dots icon
 import { Button } from 'flowbite-react'; // Import Flowbite Button
+import 'react-toastify/dist/ReactToastify.css'; // Remove this import since we're not using toast anymore
 
 const LendMoney = () => {
-    const [boxes, setBoxes] = useState([]); // List of boxes
-    const [showForm, setShowForm] = useState(false); // Toggle between form and grid
-    const [newBox, setNewBox] = useState({ amount: '', duration: '', minInterest: '', maxInterest: '' }); // New box values
+    const [boxes, setBoxes] = useState([]); // List of lending boxes
+    const [showForm, setShowForm] = useState(false); // Toggle form visibility
+    const [newBox, setNewBox] = useState({ amount: '', duration: '', min_interest: '', max_interest: '' }); // New box values
     const [showMenu, setShowMenu] = useState(null); // Track which box menu is open
     const [editIndex, setEditIndex] = useState(null); // Track which box is being edited
     const [errorMessage, setErrorMessage] = useState(''); // Error message for validation
     const menuRef = useRef(null); // Ref for the dropdown menu
+
+    const userId = localStorage.getItem("user_id");
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -23,6 +26,21 @@ const LendMoney = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    // Fetch existing boxes from the backend when component mounts
+    useEffect(() => {
+        fetchBoxes();
+    }, []);
+
+    const fetchBoxes = async () => {
+        try {
+            const response = await fetch(`http://10.16.58.118:3000/lend/user/${userId}`);
+            const data = await response.json();
+            setBoxes(data);
+        } catch (error) {
+            console.error('Error fetching boxes:', error);
+        }
+    };
 
     // Function to toggle dropdown for a specific box
     const toggleMenu = (index) => {
@@ -38,13 +56,13 @@ const LendMoney = () => {
 
     // Function to validate input fields with priority error handling
     const validateInputs = () => {
-        const { amount, duration, minInterest, maxInterest } = newBox;
+        const { amount, duration, min_interest, max_interest } = newBox;
 
         // Convert inputs to numbers to avoid string comparison issues
-        const minInt = Number(minInterest);
-        const maxInt = Number(maxInterest);
+        const minInt = Number(min_interest);
+        const maxInt = Number(max_interest);
 
-        if (!amount || !duration || !minInterest || !maxInterest) {
+        if (!amount || !duration || !min_interest || !max_interest) {
             return "Please fill in all fields.";
         }
         if (amount <= 0 || isNaN(amount)) {
@@ -67,7 +85,7 @@ const LendMoney = () => {
 
     // Function to reset form fields
     const resetForm = () => {
-        setNewBox({ amount: '', duration: '', minInterest: '', maxInterest: '' }); // Reset form fields
+        setNewBox({ amount: '', duration: '', min_interest: '', max_interest: '' }); // Reset form fields
         setErrorMessage(''); // Clear any previous error messages
     };
 
@@ -79,26 +97,60 @@ const LendMoney = () => {
     };
 
     // Function to add a new box with user input or update an existing box
-    const handleNext = () => {
+    const handleNext = async () => {
         const error = validateInputs();
         if (error) {
             setErrorMessage(error); // Display only one error message
             return;
         }
 
-        if (editIndex !== null) {
-            // Update existing box
-            const updatedBoxes = boxes.map((box, index) =>
-                index === editIndex ? newBox : box
-            );
-            setBoxes(updatedBoxes);
-        } else {
-            // Add new box
-            setBoxes([...boxes, newBox]);
+        const boxData = { ...newBox, user_id: userId }; // Add user_id to box data
+
+        try {
+            // If editing, update existing box
+            if (editIndex !== null) {
+                const updatedResponse = await fetch(`http://10.16.58.118:3000/lend/update/${boxes[editIndex]._id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(boxData),
+                });
+
+                if (updatedResponse.ok) {
+                    const updatedBoxes = boxes.map((box, index) =>
+                        index === editIndex ? { ...box, ...newBox } : box
+                    );
+                    setBoxes(updatedBoxes);
+                    alert('Lending box updated successfully!');
+                } else {
+                    throw new Error('Failed to update box');
+                }
+            } else {
+                // Add new box
+                const response = await fetch('http://10.16.58.118:3000/lend/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(boxData),
+                });
+
+                if (response.ok) {
+                    fetchBoxes(); // Fetch the updated list of boxes
+                    alert('Lending box added successfully!');
+                } else {
+                    throw new Error('Failed to add box');
+                }
+            }
+
+            resetForm(); // Reset form after submission
+            setShowForm(false); // Go back to grid view
+            setEditIndex(null); // Reset edit index
+        } catch (error) {
+            console.error('Error adding or updating box:', error);
+            alert('Failed to add or update box. Please try again.');
         }
-        resetForm(); // Reset form after submission
-        setShowForm(false); // Go back to grid view
-        setEditIndex(null); // Reset edit index
     };
 
     // Function to open the form for a new box and ensure the form is cleared
@@ -115,133 +167,126 @@ const LendMoney = () => {
         setShowMenu(null); // Close the dropdown menu
     };
 
+    // Function to delete a lending box
+    const handleDelete = async (index) => {
+        const boxId = boxes[index]._id; // Get the ID of the box to delete
+        try {
+            const response = await fetch(`http://10.16.58.118:3000/lend/delete/${boxId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                const updatedBoxes = boxes.filter((_, i) => i !== index); // Remove the deleted box from state
+                setBoxes(updatedBoxes);
+                alert('Lending box deleted successfully!');
+            } else {
+                throw new Error('Failed to delete box');
+            }
+        } catch (error) {
+            console.error('Error deleting box:', error);
+            alert('Failed to delete box. Please try again.');
+        }
+    };
+
     return (
-        <div className="relative flex-grow p-6 flex flex-col">
-            {/* Form to input new box details */}
-            {showForm ? (
-                <div className="flex flex-col justify-center items-center bg-white shadow-lg p-6 rounded-lg" style={{ width: '400px', margin: 'auto' }}>
-                    {/* Form fields */}
-                    <div className="w-full mb-4">
-                        <label className="block">Amount</label>
-                        <input
-                            type="number"
-                            name="amount"
-                            value={newBox.amount}
-                            onChange={handleInputChange}
-                            className="border border-gray-300 rounded p-2 w-full"
-                        />
-                    </div>
-                    <div className="w-full mb-4">
-                        <label className="block">Duration (months)</label>
-                        <input
-                            type="number"
-                            name="duration"
-                            value={newBox.duration}
-                            onChange={handleInputChange}
-                            className="border border-gray-300 rounded p-2 w-full"
-                        />
-                    </div>
-                    <div className="w-full mb-4">
-                        <label className="block">Minimum Interest (%)</label>
-                        <input
-                            type="number"
-                            name="minInterest"
-                            value={newBox.minInterest}
-                            onChange={handleInputChange}
-                            className="border border-gray-300 rounded p-2 w-full"
-                        />
-                    </div>
-                    <div className="w-full mb-4">
-                        <label className="block">Maximum Interest (%)</label>
-                        <input
-                            type="number"
-                            name="maxInterest"
-                            value={newBox.maxInterest}
-                            onChange={handleInputChange}
-                            className="border border-gray-300 rounded p-2 w-full"
-                        />
-                    </div>
+        <div className='p-5 w-full mx-auto mt-5 mb-5 max-w-7xl'>
+            <div className="relative flex-grow w- p-6 flex flex-col">
+                {/* Form to input new box details */}
+                {showForm ? (
+                    <div className="flex flex-col justify-center items-center bg-white shadow-lg p-6 rounded-lg" style={{ width: '400px', margin: 'auto' }}>
+                        {/* Form fields */}
+                        <div className="w-full mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Amount</label>
+                            <input
+                                type="number"
+                                name="amount"
+                                value={newBox.amount}
+                                onChange={handleInputChange}
+                                className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring focus:ring-blue-500"
+                            />
+                        </div>
+                        <div className="w-full mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Duration (months)</label>
+                            <input
+                                type="number"
+                                name="duration"
+                                value={newBox.duration}
+                                onChange={handleInputChange}
+                                className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring focus:ring-blue-500"
+                            />
+                        </div>
+                        <div className="w-full mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Minimum Interest (%)</label>
+                            <input
+                                type="number"
+                                name="min_interest"
+                                value={newBox.min_interest}
+                                onChange={handleInputChange}
+                                className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring focus:ring-blue-500"
+                            />
+                        </div>
+                        <div className="w-full mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Maximum Interest (%)</label>
+                            <input
+                                type="number"
+                                name="max_interest"
+                                value={newBox.max_interest}
+                                onChange={handleInputChange}
+                                className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring focus:ring-blue-500"
+                            />
+                        </div>
 
-                    {/* Error message for the entire form */}
-                    {errorMessage && (
-                        <div className="mt-2 text-red-500 text-sm">{errorMessage}</div>
-                    )}
+                        {errorMessage && (
+                            <div className="text-red-500 text-sm mb-4">{errorMessage}</div>
+                        )}
 
-                    <div className="flex justify-between w-full mt-4">
-                        <Button onClick={handleBack} color="gray">Back</Button>
-                        <Button onClick={handleNext} gradientDuoTone='greenToBlue'>Next</Button>
+                        {/* Buttons */}
+                        <div className="flex justify-between w-full ml-5 mr-5">
+                            <Button onClick={handleBack} color='gray' className='w-32'>
+                                Back
+                            </Button>
+                            <Button onClick={handleNext} className='w-32' outline gradientDuoTone="greenToBlue">
+                                {editIndex !== null ? 'Update' : 'Next'}
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <>
-                    {/* Scrollable container with grid layout for boxes */}
-                    <div className="grid grid-cols-3 gap-6 overflow-y-auto" style={{ width: 'calc(100% - 20px)', marginLeft: '5%' }}>
-                        {boxes.map((box, index) => (
-                            <div
-                                key={index}
-                                className="bg-white shadow-lg rounded-lg p-4 relative flex flex-col justify-center items-center"
-                                style={{
-                                    height: '200px',
-                                    width: '80%',
-                                }}
-                            >
-                                {/* Three dots for menu options */}
-                                <button
-                                    onClick={() => toggleMenu(index)}
-                                    className="absolute top-3 right-3 text-gray-600 focus:outline-none"
-                                >
-                                    <HiDotsVertical className="w-6 h-6" />
-                                </button>
-
-                                {/* Dropdown Menu */}
-                                {showMenu === index && (
-                                    <div ref={menuRef} className="absolute top-10 right-3 bg-white shadow-lg rounded-md border border-gray-200">
-                                        <ul className="text-left">
-                                            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleEdit(index)}>Edit</li>
-                                            <li
-                                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                                onClick={() => setBoxes(boxes.filter((_, i) => i !== index))}
-                                            >
+                ) : (
+                    // Render the grid of lending boxes
+                    <>
+                        <h1 className="text-xl font-bold mb-6">Lending Boxes</h1>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {boxes.map((box, index) => (
+                                <div key={index} className="bg-white shadow-md rounded-lg p-4 relative">
+                                    <h2 className="text-lg font-semibold">{`Amount: ₹${box.amount}`}</h2>
+                                    <p>{`Duration: ${box.duration} months`}</p>
+                                    <p>{`Min Interest: ${box.min_interest}%`}</p>
+                                    <p>{`Max Interest: ${box.max_interest}%`}</p>
+                                    <button
+                                        onClick={() => toggleMenu(index)}
+                                        className="absolute top-2 right-2 text-gray-500 focus:outline-none">
+                                        <HiDotsVertical />
+                                    </button>
+                                    {showMenu === index && (
+                                        <div className="absolute right-2 top-8 bg-white border border-gray-300 rounded shadow-lg">
+                                            <Button onClick={() => handleEdit(index)} className="block text-left px-4 py-2 hover:bg-gray-100">
+                                                Edit
+                                            </Button>
+                                            <Button onClick={() => handleDelete(index)} className="block text-left px-4 py-2 hover:bg-gray-100">
                                                 Delete
-                                            </li>
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {/* Box content */}
-                                <div className="space-y-2">
-                                    <div className="flex">
-                                        <p className="font-semibold text-black w-[120px]">Amount</p>
-                                        <p className="font-semibold text-black w-[10px]">:</p>
-                                        <p className="font-normal">{box.amount}</p>
-                                    </div>
-                                    <div className="flex">
-                                        <p className="font-semibold text-black w-[120px]">Duration</p>
-                                        <p className="font-semibold text-black w-[10px]">:</p>
-                                        <p className="font-normal">{box.duration} months</p>
-                                    </div>
-                                    <div className="flex">
-                                        <p className="font-semibold text-black w-[120px]">Max Interest</p>
-                                        <p className="font-semibold text-black w-[10px]">:</p>
-                                        <p className="font-normal">{box.minInterest}%</p>
-                                    </div>
-                                    <div className="flex">
-                                        <p className="font-semibold text-black w-[120px]">Min Interest</p>
-                                        <p className="font-semibold text-black w-[10px]">:</p>
-                                        <p className="font-normal">{box.maxInterest}%</p>
-                                    </div>
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Add new box button */}
-                    <div className="mt-6 flex justify-center">
-                        <Button onClick={handleAddNewBox} gradientDuoTone='greenToBlue'>Add</Button>
-                    </div>
-                </>
-            )}
+                            ))}
+                        </div>
+                        <Button gradientDuoTone="greenToBlue" onClick={handleAddNewBox} size='lg' className="mt-6 mx-auto w-44">
+                            Add New Lending
+                        </Button>
+                    </>
+                )}
+            </div>
         </div>
+
     );
 };
 
