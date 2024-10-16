@@ -12,6 +12,6 @@ borrow.post('/request', addRequest);
 
 borrow.get('/requested_transactions/:id', getRequestedTransactions);
 
-borrow.delete('/withdraw/:id', withdrawTransaction);
+borrow.delete('/withdraw', withdrawTransaction);
 
 export default borrow;

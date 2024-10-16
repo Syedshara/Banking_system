@@ -149,13 +149,16 @@ export const getRequestedTransactions = async (req, res) => {
 
 export const withdrawTransaction = async (req, res) => {
     try {
-        // Extract transaction ID from the request parameters
-        const { id } = req.params;
-        // Extract borrower ID from the request body
-        const { borrower_id } = req.body;
+        // Extract transaction ID, lending ID, and borrower ID from the request body
+        const { borrower_id, lending_id, transactionId } = req.body;
+
+        // Validate input parameters
+        if (!transactionId || !lending_id || !borrower_id) {
+            return res.status(400).json({ message: 'Transaction ID, Lending ID, and Borrower ID are required' });
+        }
 
         // Remove the transaction from the Transaction collection
-        const result = await Transaction.findByIdAndDelete(id);
+        const result = await Transaction.findByIdAndDelete(transactionId);
 
         // Check if the transaction was found and deleted
         if (!result) {
@@ -164,7 +167,7 @@ export const withdrawTransaction = async (req, res) => {
 
         // Find the lending request that corresponds to this transaction and remove the borrower from the requests array
         const lendingResult = await Lending.updateOne(
-            { 'requests.borrower_id': borrower_id }, // Find the lending record with this borrower_id
+            { _id: lending_id }, // Find the lending record with this lending_id
             { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
         );
 
@@ -177,9 +180,8 @@ export const withdrawTransaction = async (req, res) => {
         res.status(200).json({ message: 'Transaction withdrawn and borrower removed successfully' });
     } catch (error) {
         console.error("Error withdrawing transaction:", error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'An error occurred while withdrawing the transaction. Please try again later.' });
     }
 };
-
 
 

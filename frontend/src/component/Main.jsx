@@ -95,6 +95,33 @@ const Main = () => {
             console.error('Error:', error);
         }
     };
+    const handleWithdraw = async (lender) => {
+        const userId = localStorage.getItem("user_id");
+        console.log(lender);
+
+        try {
+            const response = await fetch(`http://localhost:3000/borrow/withdraw`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ borrower_id: userId, transactionId: lender.id, lending_id: lender.lendingId }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                console.log(data.message);
+                setLenders((prevLenders) => prevLenders.filter((item) => item.id !== lender.id));
+                // Handle success (e.g., show notification)
+            } else {
+                console.error(data.message); // Handle error
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    // Example of usage: handleWithdraw('670e6234bcfe2a58e7c8cdef', 'user_id_here');
 
     return (
         <div className="p-5 w-full mt-5 mb-5 max-w-7xl ml-10 pt-10">
@@ -175,7 +202,7 @@ const Main = () => {
                                 </div>
 
                                 {/* Withdraw Button */}
-                                <Button color="red" onClick={() => handleAcceptRequest(lender, 'withdraw')}>
+                                <Button color="red" onClick={() => handleWithdraw(lender)}>
                                     Withdraw Request
                                 </Button>
                             </Card>
