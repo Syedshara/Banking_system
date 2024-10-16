@@ -22,7 +22,7 @@ const BorrowMoney = () => {
 
         // Send request data to backend API
         try {
-            const response = await fetch('http://10.16.58.118:3000/borrow/getlenders', {
+            const response = await fetch('http://localhost:3000/borrow/getlenders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ const BorrowMoney = () => {
 
         // Send lender and user data to the backend
         try {
-            const response = await fetch('http://10.16.58.118:3000/borrow/request', {
+            const response = await fetch('http://localhost:3000/borrow/request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

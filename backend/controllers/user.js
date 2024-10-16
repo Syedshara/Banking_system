@@ -101,3 +101,55 @@ export const actionOnLendingStatus = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
+
+export const getTransactionHistory = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // Step 1: Fetch transactions where the user is either lender or borrower
+        const transactions = await Transaction.find({
+            $or: [
+                { lender_id: userId },
+                { borrower_id: userId }
+            ]
+        }).sort({ createdAt: -1 }); // Sort by date descending (most recent first)
+
+        // Step 2: Collect unique lender and borrower IDs
+        const lenderIds = [...new Set(transactions.map(transaction => transaction.lender_id.toString()))];
+        const borrowerIds = [...new Set(transactions.map(transaction => transaction.borrower_id.toString()))];
+
+        // Step 3: Fetch users by their IDs
+        const lenders = await User.find({ _id: { $in: lenderIds } }, 'name');
+        const borrowers = await User.find({ _id: { $in: borrowerIds } }, 'name');
+
+        // Create a map for quick lookup
+        const lenderMap = lenders.reduce((acc, lender) => {
+            acc[lender._id.toString()] = lender.name; // Store lender names with their IDs
+            return acc;
+        }, {});
+
+        const borrowerMap = borrowers.reduce((acc, borrower) => {
+            acc[borrower._id.toString()] = borrower.name; // Store borrower names with their IDs
+            return acc;
+        }, {});
+
+        // Step 4: Format the output
+        const formattedTransactions = transactions.map(transaction => {
+            const isLender = transaction.lender_id.toString() === userId;
+            return {
+                date: transaction.createdAt,
+                name: isLender ? borrowerMap[transaction.borrower_id.toString()] : lenderMap[transaction.lender_id.toString()],
+                amount: transaction.amount,
+                status: transaction.transaction_status,
+                role: isLender ? 'lender' : 'borrower'
+            };
+        });
+
+        // Step 5: Send the formatted response
+        res.status(200).json(formattedTransactions);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

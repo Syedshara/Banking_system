@@ -138,7 +138,7 @@ const Register = () => {
         console.log("Registering user with data:", userData);
 
         try {
-            const response = await fetch('http://10.16.58.118:3000/auth/register', { // Make sure to include http://
+            const response = await fetch('http://localhost:3000/auth/register', { // Make sure to include http://
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
