@@ -184,7 +184,7 @@ const LendMoney = () => {
             }
         } catch (error) {
             console.error('Error deleting box:', error);
-            alert('Failed to delete box. Please try again.');
+            alert('Insufficient Balance! Enter a valid amount.');
         }
     };
 
