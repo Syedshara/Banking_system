@@ -61,9 +61,10 @@ const BorrowMoney = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    user_id: userId, // Include user_id from storage
+                    borrower_id: userId,
+                    lending_id: lender.lending_id, // Include user_id from storage
                     lender_id: lender.lender_id, // Lender's ID
-                    lender_amount: lender.amount, // Lender's amount
+                    amount: lender.amount, // Lender's amount
                 }),
             });
 

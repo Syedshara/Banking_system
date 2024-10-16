@@ -1,35 +1,9 @@
 import { Button, Card } from 'flowbite-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Main = () => {
-    // Dummy data for borrowers and lenders with unique IDs
-    const [borrowers, setBorrowers] = useState([
-        {
-            id: 1,
-            name: 'John Doe',
-            amount: 5000,
-            interestRate: 5,
-        },
-        {
-            id: 2,
-            name: 'Jane Smith',
-            amount: 8000,
-            interestRate: 6,
-        },
-        {
-            id: 3,
-            name: 'Alice Johnson',
-            amount: 12000,
-            interestRate: 4.5,
-        },
-        {
-            id: 4,
-            name: 'Charlie Green',
-            amount: 15000,
-            interestRate: 7,
-        },
-    ]);
-
+    // State to manage borrowers and lenders
+    const [borrowers, setBorrowers] = useState([]);
     const [lenders, setLenders] = useState([
         {
             id: 5,
@@ -60,6 +34,34 @@ const Main = () => {
     // State to manage which box is currently visible
     const [activeTab, setActiveTab] = useState('borrowers');
 
+    // Fetch borrower data from the backend API
+    useEffect(() => {
+        const fetchBorrowers = async () => {
+            const userId = localStorage.getItem('user_id'); // Get user_id from local storage
+            if (!userId) {
+                console.error('User ID not found in local storage.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/users/lending_requests/${userId}`); // Pass user_id to the API endpoint
+                const data = await response.json();
+
+                const formattedBorrowers = data.map((item) => ({
+                    id: item.transaction_id, // Use a unique identifier
+                    name: item.borrower_name,
+                    amount: item.amount,
+                    interestRate: item.interest_rate,
+                }));
+                setBorrowers(formattedBorrowers);
+            } catch (error) {
+                console.error('Error fetching borrowers:', error);
+            }
+        };
+
+        fetchBorrowers();
+    }, []); // Empty dependency array ensures this runs only once on component mount
+
     // Handle accept request function
     const handleAcceptRequest = (request, type) => {
         console.log(`${type} request accepted:`, request);
@@ -67,7 +69,7 @@ const Main = () => {
     };
 
     return (
-        <div className="p-5 w-full  mt-5 mb-5 max-w-7xl ml-10 pt-10">
+        <div className="p-5 w-full mt-5 mb-5 max-w-7xl ml-10 pt-10">
             {/* Tabs for Borrower and Lender */}
             <div className="flex justify-between mb-5">
                 <Button onClick={() => setActiveTab('borrowers')} color={activeTab === 'borrowers' ? 'cyan' : 'gray'}>
@@ -85,23 +87,27 @@ const Main = () => {
                         <p>No borrower requests available.</p>
                     ) : (
                         borrowers.map((borrower) => (
-                            <Card key={borrower.id} className="p-4 shadow-lg pt-10 h-80">
+                            <Card key={borrower.id} className="shadow-lg py-5  w-72 h-80">
                                 {/* Borrower Name */}
-                                <div className="mb-3">
+                                <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Borrower Name:</p>
                                     <p className="text-md">{borrower.name}</p>
                                 </div>
 
                                 {/* Amount */}
-                                <div className="mb-3">
+                                <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Amount:</p>
                                     <p className="text-md">₹{borrower.amount}</p>
                                 </div>
 
                                 {/* Interest Rate */}
-                                <div className="">
+                                <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Interest Rate:</p>
                                     <p className="text-md">{borrower.interestRate}%</p>
+                                </div>
+                                <div className="flex items-center gap-6 mb-3">
+                                    <p className="text-lg font-semibold">Duration :</p>
+                                    <p className="text-md">{borrower.duration} months</p>
                                 </div>
 
                                 {/* Accept Request Button */}
@@ -141,12 +147,9 @@ const Main = () => {
                                 </div>
 
                                 {/* Accept Request Button */}
-
                                 <Button color="red" onClick={() => handleAcceptRequest(lender, 'Lender')}>
                                     Withdraw Request
                                 </Button>
-
-
                             </Card>
                         ))
                     )
