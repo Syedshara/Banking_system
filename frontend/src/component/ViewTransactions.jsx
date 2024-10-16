@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Dropdown } from 'flowbite-react';
 
-
 const ViewTransactions = () => {
     const [transactions, setTransactions] = useState([]);
     const [filter, setFilter] = useState('All'); // Default filter
@@ -27,6 +26,15 @@ const ViewTransactions = () => {
 
         fetchTransactions();
     }, [filter]);
+
+    const formatDate = (timestamp) => {
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('en-IN', { // Change locale as needed
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    };
 
     return (
         <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-4xl">
@@ -58,7 +66,7 @@ const ViewTransactions = () => {
                         {transactions.length > 0 ? (
                             transactions.map((transaction, index) => (
                                 <Table.Row key={transaction.id || index} className="bg-white hover:bg-gray-100">
-                                    <Table.Cell>{transaction.date}</Table.Cell>
+                                    <Table.Cell>{formatDate(transaction.date)}</Table.Cell>
                                     <Table.Cell>{transaction.name}</Table.Cell>
                                     <Table.Cell>
                                         <span
@@ -90,7 +98,6 @@ const ViewTransactions = () => {
                     </Table.Body>
                 </Table>
             </Card>
-
         </div>
     );
 };
