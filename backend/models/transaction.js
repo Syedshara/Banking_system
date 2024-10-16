@@ -20,11 +20,16 @@ const transactionSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    interest_rate: {
+        type: Number,
+        required: true,
+        min: 0, // Ensure interest is non-negative
+    },
     transaction_status: {
         type: String,
         required: true
     }
 }, { timestamps: true });
 
-const Transaction = mongoose.model('Transaction',transactionSchema);
+const Transaction = mongoose.model('Transaction', transactionSchema);
 export default Transaction;

@@ -22,12 +22,14 @@ const BorrowMoney = () => {
 
         // Send request data to backend API
         try {
-            const response = await fetch('http://localhost:3000/borrow/getlenders', {
+            const userId = localStorage.getItem("user_id");
+            const response = await fetch('http://10.16.58.118:3000/borrow/getlenders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    id: userId,
                     money,
                     duration: duration || null, // Optional
                     interest_rate: interestRate || null, // Optional
@@ -39,8 +41,6 @@ const BorrowMoney = () => {
             console.log(data);
             setLenders(data);
 
-            // Reset form fields after successful request
-
         } catch (error) {
             console.error('Error fetching lenders:', error);
             alert('Failed to fetch lenders. Please try again.');
@@ -51,25 +51,41 @@ const BorrowMoney = () => {
 
     // Handle lender selection
     const handleLenderRequest = async (lender) => {
-        const userId = localStorage.getItem('user_id'); // Retrieve user_id from localStorage (or sessionStorage)
+        const userId = localStorage.getItem('user_id'); // Retrieve user_id from localStorage
+
+        // Check if the lender has already been requested
+        if (lender.has_requested) {
+            alert('You have already requested this lender.');
+            return;
+        }
 
         // Send lender and user data to the backend
         try {
-            const response = await fetch('http://localhost:3000/borrow/request', {
+            const response = await fetch('http://10.16.58.118:3000/borrow/request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     borrower_id: userId,
-                    lending_id: lender.lending_id, // Include user_id from storage
+                    lending_id: lender.lending_id, // Include lending ID
                     lender_id: lender.lender_id, // Lender's ID
-                    amount: lender.amount, // Lender's amount
+                    amount: lender.amount, // Lender's amount,
+                    interest_rate: interestRate || lender.min_interest
+
                 }),
             });
 
             const result = await response.json();
             console.log('Request sent successfully:', result);
+
+            // Update the lenders state to reflect that this lender has been requested
+            setLenders((prevLenders) =>
+                prevLenders.map((l) =>
+                    l.lending_id === lender.lending_id ? { ...l, has_requested: true } : l
+                )
+            );
+
             alert('Lender selected successfully!');
         } catch (error) {
             console.error('Error sending lender request:', error);
@@ -156,8 +172,9 @@ const BorrowMoney = () => {
                                         <Button
                                             color="light"
                                             onClick={() => handleLenderRequest(lender)}
+                                            disabled={lender.has_requested} // Disable button if already requested
                                         >
-                                            Request
+                                            {lender.has_requested ? 'Requested' : 'Request'}
                                         </Button>
                                     </div>
                                 </div>

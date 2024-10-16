@@ -184,7 +184,7 @@ const LendMoney = () => {
             }
         } catch (error) {
             console.error('Error deleting box:', error);
-            alert('Failed to delete box. Please try again.');
+            alert('Insufficient Balance! Enter a valid amount.');
         }
     };
 
@@ -257,61 +257,99 @@ const LendMoney = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center">
-                        {boxes.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center">
-                                <h3 className="text-xl font-semibold mb-4">No records available</h3>
-                                <button
-                                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
-                                    onClick={handleAddNewBox}
-                                >
-                                    Add New Box
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {boxes.map((box, index) => (
-                                    <div key={index} className="border border-gray-300 shadow-lg p-4 rounded-lg relative">
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <h3 className="text-lg font-bold mb-2">Amount: ${box.amount}</h3>
-                                                <p>Duration: {box.duration} months</p>
-                                                <p>Interest Range: {box.min_interest}% - {box.max_interest}%</p>
-                                            </div>
-
-                                            <button onClick={() => toggleMenu(index)}>
-                                                <HiDotsVertical size={24} />
-                                            </button>
-                                            {showMenu === index && (
-                                                <ul ref={menuRef} className="absolute right-0 mt-2 w-40 bg-white border border-gray-300 shadow-lg rounded-lg z-10">
-                                                    <li
-                                                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                                                        onClick={() => handleEdit(index)}
-                                                    >
-                                                        Edit
-                                                    </li>
-                                                    <li
-                                                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                                                        onClick={() => handleDelete(index)}
-                                                    >
-                                                        Delete
-                                                    </li>
-                                                </ul>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                                <div className="flex flex-col items-center justify-center mt-4">
+                    <><div className="flex flex-col items-center justify-center">
+                            {boxes.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-center">
+                                    <h3 className="text-xl font-semibold mb-4">No records available</h3>
                                     <button
-                                        onClick={handleAddNewBox}
                                         className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
+                                        onClick={handleAddNewBox}
                                     >
                                         Add New Box
                                     </button>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {boxes.map((box, index) => (
+                                        <div key={index} className="border border-gray-300 shadow-lg p-4 rounded-lg relative">
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <h3 className="text-lg font-bold mb-2">Amount: ${box.amount}</h3>
+                                                    <p>Duration: {box.duration} months</p>
+                                                    <p>Interest Range: {box.min_interest}% - {box.max_interest}%</p>
+                                                </div>
+
+                                                <button onClick={() => toggleMenu(index)}>
+                                                    <HiDotsVertical size={24} />
+                                                </button>
+                                                {showMenu === index && (
+                                                    <ul ref={menuRef} className="absolute right-0 mt-2 w-40 bg-white border border-gray-300 shadow-lg rounded-lg z-10">
+                                                        <li
+                                                            className="p-2 hover:bg-gray-100 cursor-pointer"
+                                                            onClick={() => handleEdit(index)}
+                                                        >
+                                                            Edit
+                                                        </li>
+                                                        <li
+                                                            className="p-2 hover:bg-gray-100 cursor-pointer"
+                                                            onClick={() => handleDelete(index)}
+                                                        >
+                                                            Delete
+                                                        </li>
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="flex flex-col items-center justify-center mt-4">
+                                        <button
+                                            onClick={handleAddNewBox}
+                                            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
+                                        >
+                                            Add New Box
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                            // Render the grid of lending boxes
+                            <>
+                                <h1 className="text-xl font-bold mb-6">Lending Boxes</h1>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    {boxes.length === 0 ? (
+                                        <div className="col-span-1 sm:col-span-2 md:col-span-3 flex items-center justify-center">
+                                            <h2 className='text-xl'>No records found</h2>
+                                        </div>
+                                    ) : (
+                                        boxes.map((box, index) => (
+                                            <div key={index} className="bg-white shadow-md rounded-lg p-4 relative">
+                                                <h2 className="text-lg font-semibold">{`Amount: ₹${box.amount}`}</h2>
+                                                <p>{`Duration: ${box.duration} months`}</p>
+                                                <p>{`Min Interest: ${box.min_interest}%`}</p>
+                                                <p>{`Max Interest: ${box.max_interest}%`}</p>
+                                                <button
+                                                    onClick={() => toggleMenu(index)}
+                                                    className="absolute top-2 right-2 text-gray-500 focus:outline-none">
+                                                    <HiDotsVertical />
+                                                </button>
+                                                {showMenu === index && (
+                                                    <div className="absolute right-4 top-6   ">
+                                                        <Button onClick={() => handleEdit(index)} size='xs' color='gray' className=" text-left px-4 py-2 w-16 hover:bg-gray-100 mb-1">
+                                                            Edit
+                                                        </Button>
+                                                        <Button onClick={() => handleDelete(index)} color='gray' size='xs' className=" text-left px-4 py-2 w-16 hover:bg-gray-100">
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                <Button gradientDuoTone="greenToBlue" onClick={handleAddNewBox} size='lg' className="mt-6 mx-auto w-44">
+                                    Add New Lending
+                                </Button>
+                            </></>
                 )}
             </div>
         </div>

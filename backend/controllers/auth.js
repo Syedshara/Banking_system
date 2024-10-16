@@ -2,23 +2,32 @@ import User from '../models/user.js';
 import bcryptjs from 'bcryptjs';
 
 export const createUser = async (req, res) => {
-    const { name, email, acc_number, pin, IFSC, upi_id, phone } = req.body;
+    const { fullName,
+        email,
+        phoneNumber,
+        accountNumber,
+        ifscNumber,
+        upiId,
+        pin } = req.body;
 
-    if (!name || !email || !acc_number || name.trim() === '' || email.trim() === '' || acc_number.trim() === '') {
+
+    if (!fullName || !email || !accountNumber) {
         return res.status(400).json({ error: 'Fill all the fields.' });
     }
+
 
     try {
         const existingUser = await User.findOne({
             $or: [
                 { email },
-                { phone },
-                { "bank_details.acc_number": acc_number },
-                { "bank_details.upi_id": upi_id }
+                { phoneNumber },
+                { "bank_details.acc_number": accountNumber },
+                { "bank_details.upi_id": upiId }
             ]
         });
 
         if (existingUser) {
+            console.log("User already exists !")
             return res.status(400).json({ error: 'User already exists with this email, phone number, account number, or UPI ID.' });
         }
 
@@ -26,14 +35,14 @@ export const createUser = async (req, res) => {
         const balance = Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
 
         const newUser = new User({
-            name,
+            name: fullName,
             email,
-            phone,
+            phone: phoneNumber,
             bank_details: {
-                acc_number,
+                acc_number: accountNumber,
                 pin: hashedPin,
-                IFSC,
-                upi_id,
+                IFSC: ifscNumber,
+                upi_id: upiId,
                 balance
             },
         });
@@ -66,7 +75,7 @@ export const getUsers = async (req, res) => {
         }
 
         res.status(200).json({ message: 'Login successful!', userId: user._id });
-        
+
     } catch (err) {
         res.status(500).json({ error: 'Failed to login', details: err.message });
     }

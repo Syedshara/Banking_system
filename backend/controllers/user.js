@@ -51,7 +51,8 @@ export const getLendingRequests = async (req, res) => {
                     borrower_id: transaction.borrower_id,
                     borrower_name: borrower.name,
                     amount: lending.amount,
-                    interest_rate: (lending.min_interest + lending.max_interest) / 2,
+                    lending_id: transaction.lending_id,
+                    interest_rate: transaction.interest_rate,
                     duration: lending.duration,
                 };
             })
@@ -68,10 +69,15 @@ export const getLendingRequests = async (req, res) => {
 
 export const actionOnLendingStatus = async (req, res) => {
     try {
-        const { transaction_id, action } = req.body;
+        const { transaction_id,
+            action,
+            pin,
+            borrower_id,
+            lending_id, } = req.body;
 
         // Find the transaction using the provided transaction_id
         const transaction = await Transaction.findById(transaction_id);
+        console.log(transaction);
         if (!transaction) {
             return res.status(404).json({ message: 'Transaction not found' });
         }
@@ -84,15 +90,59 @@ export const actionOnLendingStatus = async (req, res) => {
                 _id: { $ne: transaction_id }, // Exclude the current transaction
             });
 
-            // Step 2: Update the status of the accepted transaction
-            transaction.transaction_status = "accepted";
+            // Step 2: Fetch the lender details
+            const lender = await User.findById(transaction.lender_id);
+            if (!lender) {
+                return res.status(404).json({ message: 'Lender not found' });
+            }
+            const borrower = await User.findById(transaction.borrower_id);
+            if (!borrower) {
+                return res.status(404).json({ message: 'Borrower not found' });
+            }
+
+
+            // Step 3: Check if the lender has sufficient balance
+            if (lender.bank_details.balance < transaction.amount) {
+                return res.status(400).json({ message: 'Insufficient balance.' });
+            }
+
+            // Step 4: Deduct the loan amount from the lender's balance
+            lender.bank_details.balance -= transaction.amount;
+            await lender.save();
+
+            borrower.bank_details.balance += transaction.amount;
+            await borrower.save();
+
+
+
+            // Step 5: Update the status of the accepted transaction
+            transaction.transaction_status = "pending";
             await transaction.save();
 
-            res.status(200).json({ message: 'Transaction accepted and conflicts removed.' });
+            res.status(200).json({ message: 'Transaction accepted, conflicts removed, and lender’s balance updated.' });
+            const lendingResult = await Lending.updateOne(
+                { _id: lending_id }, // Find the lending record with this lending_id
+                { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+            );
+
+            // Check if the lending request was found and updated
+            if (lendingResult.nModified === 0) {
+                return res.status(404).json({ message: 'Borrower not found in lending requests' });
+            }
+
         } else if (action === "rejected") {
-            // Step 3: Remove the rejected transaction
+            // Step 6: Remove the rejected transaction
             await Transaction.findByIdAndDelete(transaction_id);
             res.status(200).json({ message: 'Transaction rejected and removed.' });
+            const lendingResult = await Lending.updateOne(
+                { _id: lending_id }, // Find the lending record with this lending_id
+                { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+            );
+
+            // Check if the lending request was found and updated
+            if (lendingResult.nModified === 0) {
+                return res.status(404).json({ message: 'Borrower not found in lending requests' });
+            }
         } else {
             res.status(400).json({ message: 'Invalid action.' });
         }
@@ -150,6 +200,104 @@ export const getTransactionHistory = async (req, res) => {
         // Step 5: Send the formatted response
         res.status(200).json(formattedTransactions);
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const getNotifications = async (req, res) => {
+    try {
+        const userId = req.params.id; // Get the user ID from the request parameters
+
+        // Step 1: Fetch all transactions where the user is a borrower
+        const transactions = await Transaction.find({ borrower_id: userId });
+
+        // Debug log to check fetched transactions
+        // console.log("Fetched Transactions: ", transactions);
+
+        const currentDate = new Date();
+        console.log("Current Date: ", currentDate); // Log current date
+        const notifications = [];
+
+        // Step 2: Loop through transactions to fetch lending info and create notifications
+        for (const transaction of transactions) {
+            // Fetch the lending details manually
+            const lending = await Lending.findById(transaction.lending_id); // Using transaction.lending_id directly
+
+            // Debug log to check fetched lending
+            //console.log("Fetched Lending: ", lending);
+
+            if (!lending) {
+                continue; // Skip if no lending found
+            }
+
+            // Log updatedAt value from transaction
+            //console.log("Updated At (transaction): ", transaction.updatedAt);
+
+            // Use updatedAt from transaction for due date calculation
+            const updatedAtDate = new Date(transaction.updatedAt);
+            //console.log("Parsed Updated At Date: ", updatedAtDate);
+
+            // Check if updatedAtDate is valid
+            if (isNaN(updatedAtDate.getTime())) {
+                console.error("Invalid updatedAt date:", transaction.updatedAt);
+                continue; // Skip if updatedAt is invalid
+            }
+
+            // Fetch the lender's user details
+            const lender = await User.findById(transaction.lender_id); // Fetch lender details
+
+            // Debug log to check fetched lender
+            //console.log("Fetched Lender: ", lender);
+
+            if (!lender) {
+                continue; // Skip if no lender found
+            }
+
+            // Calculate due date based on transaction updatedAt and lending duration
+            const dueDate = new Date(updatedAtDate);
+            dueDate.setMonth(dueDate.getMonth() + lending.duration); // Add duration to the updated date
+
+            // Debug log to check due dates
+            //console.log("Due Date: ", dueDate);
+
+            // Check for Payment Reminders (3 days before due date)
+
+
+
+            const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+            console.log(dueDate > currentDate);
+            if (dueDate > currentDate) {
+                //console.log("1st if");
+                notifications.push({
+                    type: 'payment_reminder',
+                    lender_name: lender.name,
+                    lender_amount: lending.amount,
+                    message: `Reminder: You have a payment of $${lending.amount} to ${lender.name} on ${dueDate.toISOString().split('T')[0]}.`,
+                    date: currentDate.toISOString().split('T')[0],
+                });
+            }
+
+            // Check for Overdue Alerts
+            if (dueDate < currentDate) {
+                //console.log("2nd if");
+                notifications.push({
+                    type: 'overdue_alert',
+                    lender_name: lender.name,
+                    lender_amount: lending.amount,
+                    message: `Alert: You have an overdue payment of $${lending.amount} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
+                    date: currentDate.toISOString().split('T')[0],
+                });
+            }
+        }
+
+        // Debug log to check notifications before sending response
+        console.log("Notifications: ", notifications);
+
+        // Step 3: Send the notifications as a response
+        res.status(200).json(notifications);
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
         res.status(500).json({ error: error.message });
     }
 };

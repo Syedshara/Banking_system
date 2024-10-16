@@ -24,6 +24,7 @@ export const createLending = async (req, res) => {
             max_interest,
             min_interest,
             duration,
+
         });
 
         // Save the lending record
@@ -32,6 +33,8 @@ export const createLending = async (req, res) => {
         // Optionally update user's balance (if you want to reduce it)
         //user.bank_details.balance -= amount;
         //await user.save();
+
+        await user.save();
 
         // Respond with the created lending record
         res.status(201).json(lending);
@@ -59,10 +62,19 @@ export const deleteLending = async (req, res) => {
 export const updateLending = async (req, res) => {
     try {
         const { id } = req.params;
-        const updatedLending = await Lending.findByIdAndUpdate(id, req.body, { new: true });
+
+        // Ensure the requests field is reset to an empty array
+        const updateData = {
+            ...req.body,
+            requests: [] // Reset the requests field
+        };
+
+        const updatedLending = await Lending.findByIdAndUpdate(id, updateData, { new: true });
+
         if (!updatedLending) {
             return res.status(404).json({ message: 'Lending not found' });
         }
+
         res.status(200).json(updatedLending);
     } catch (error) {
         res.status(400).json({ error: error.message });
