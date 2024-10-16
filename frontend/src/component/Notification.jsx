@@ -9,15 +9,18 @@ const Notification = () => {
         const fetchNotifications = async () => {
             try {
                 // Replace with real API endpoint
-                // const response = await fetch('http://api_endpoint/notifications');
-                // const data = await response.json();
+                const userId = localStorage.getItem('user_id');
+                const response = await fetch(`http://localhost:3000/users/notification/${userId}`);
+                const data = await response.json();
 
-                // For testing, using static data
+                console.log({data});
+
+                /*// For testing, using static data
                 const data = [
                     { id: 1, title: 'Payment Reminder', message: 'Your payment is due on 2024-10-20.', date: '2024-10-15' },
                     { id: 2, title: 'Overdue Alert', message: 'Your payment is overdue by 5 days.', date: '2024-10-12' },
                     { id: 3, title: 'New Offer', message: 'Get 20% off on your next transaction!', date: '2024-10-10' },
-                ];
+                ];*/
 
                 setNotifications(data);
             } catch (error) {
