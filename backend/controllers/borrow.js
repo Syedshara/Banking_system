@@ -106,7 +106,7 @@ export const getRequestedTransactions = async (req, res) => {
         const transactions = await Transaction.find({ borrower_id: id, transaction_status: "requested" });
 
         // Debug log to check fetched transactions
-        console.log("Fetched Transactions: ", transactions);
+
 
         // Step 2: Prepare an array to hold the results
         const results = [];
@@ -121,12 +121,16 @@ export const getRequestedTransactions = async (req, res) => {
                 // Fetch lender's user details using user_id from the lending details
                 const lender = await User.findById(lending.user_id);
 
+
                 // Check if lender details were found
                 if (lender) {
                     // Push the required details to results array
                     results.push({
                         transactionId: transaction._id, // Get the transaction ID   
-                        lenderName: lender.name, // Get the lender's name
+                        lenderName: lender.name,
+                        lenderID: transaction.lender_id,
+                        lending_id: transaction.lending_id,
+                        // Get the lender's name
                         amount: lending.amount,   // Get the requested amount
                         interestRate: lending.max_interest // Get the interest rate (or min_interest if required)
                     });
@@ -144,11 +148,12 @@ export const getRequestedTransactions = async (req, res) => {
 
 
 export const withdrawTransaction = async (req, res) => {
-
     try {
         // Extract transaction ID from the request parameters
         const { id } = req.params;
-        //console.log(id);
+        // Extract borrower ID from the request body
+        const { borrower_id } = req.body;
+
         // Remove the transaction from the Transaction collection
         const result = await Transaction.findByIdAndDelete(id);
 
@@ -157,13 +162,24 @@ export const withdrawTransaction = async (req, res) => {
             return res.status(404).json({ message: 'Transaction not found' });
         }
 
+        // Find the lending request that corresponds to this transaction and remove the borrower from the requests array
+        const lendingResult = await Lending.updateOne(
+            { 'requests.borrower_id': borrower_id }, // Find the lending record with this borrower_id
+            { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+        );
+
+        // Check if the lending request was found and updated
+        if (lendingResult.nModified === 0) {
+            return res.status(404).json({ message: 'Borrower not found in lending requests' });
+        }
+
         // Send success response
-        res.status(200).json({ message: 'Transaction withdrawn successfully' });
+        res.status(200).json({ message: 'Transaction withdrawn and borrower removed successfully' });
     } catch (error) {
         console.error("Error withdrawing transaction:", error);
         res.status(500).json({ message: error.message });
     }
-}
+};
 
 
 
