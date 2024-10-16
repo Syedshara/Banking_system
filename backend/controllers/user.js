@@ -301,3 +301,112 @@ export const getNotifications = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+export const getRepay = async (req, res) => {
+    try {
+        const { id } = req.params;  // Borrower ID
+
+        // Fetch all transactions related to this borrower
+        const transactions = await Transaction.find({ borrower_id: id, transaction_status: "pending" });
+        if (!transactions || transactions.length === 0) {
+            return res.status(404).json({ message: "No transactions found for this borrower." });
+        }
+
+        // Fetch all pending lendings related to this borrower
+
+
+        // Create an array to hold repay details
+        const repayDetails = [];
+
+        for (const transaction of transactions) {
+            // Fetch lender details using lender_id from the transaction
+            const lender = await User.findById(transaction.lender_id); // Assuming you have a User model for lenders
+            if (!lender) {
+                return res.status(404).json({ message: "Lender not found." });
+            }
+
+            // Helper function to add months to a Date object
+            const addMonths = (date, months) => {
+                const newDate = new Date(date);
+                newDate.setMonth(newDate.getMonth() + months);
+                return newDate;
+            };
+
+            // Calculate dueDate by adding the lender's duration (in months) to the transaction's createdAt date
+            const createdDate = new Date(transaction.createdAt);
+            const dueDate = addMonths(createdDate, lender.duration);  // Assuming duration is in months
+
+            // Calculate remaining time until due date
+            const currentDate = new Date();  // Current date
+            const remainingTime = dueDate.getTime() - currentDate.getTime();  // Difference in milliseconds
+
+            // Convert remainingTime to days
+            const remainingDays = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+
+            // Construct response data for each transaction
+            repayDetails.push({
+                id: transaction.transaction_id,
+                lenderName: lender.name,
+                principalAmount: transaction.amount,
+                interestRate: transaction.interest_rate,
+                dueDate: dueDate.toISOString().split('T')[0], // Format dueDate as YYYY-MM-DD
+                remainingDays: remainingDays > 0 ? remainingDays : 0,
+                // Ensure non-negative remaining days
+
+            });
+        }
+
+        // Step 3: Send the repay details as a response
+        res.status(200).json(repayDetails);
+    } catch (error) {
+        console.error("Error fetching repay details:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const updatePay = async (req, res) => {
+    try {
+        const { id, amount } = req.body; // Transaction ID and the payment amount
+
+        // Fetch the transaction using the transaction ID
+        const transaction = await Transaction.findById(id);
+        if (!transaction) {
+            return res.status(404).json({ message: "Transaction not found." });
+        }
+
+        // Fetch the lender and borrower using their IDs
+        const lender = await User.findById(transaction.lender_id);
+        const borrower = await User.findById(transaction.borrower_id);
+        if (!lender || !borrower) {
+            return res.status(404).json({ message: "Lender or borrower not found." });
+        }
+
+        // Check if the borrower has enough balance to make the payment
+        if (borrower.balance < amount) {
+            return res.status(400).json({ message: "Insufficient balance for this transaction." });
+        }
+
+        // Update the lender's balance
+        lender.balance += amount; // Assuming there's a balance field in the User model
+        await lender.save();
+
+        // Update the borrower's balance
+        if (borrower.balance - amount < 0) {
+            return res.status(400).json({ message: "Insufficient balance for this transaction." });
+        }
+        borrower.balance -= amount; // Assuming there's a balance field in the User model
+        await borrower.save();
+
+        // Update the transaction status to 'paid'
+        transaction.transaction_status = "paid";
+        await transaction.save();
+
+        // Send a success response
+        res.status(200).json({ message: "Payment successful.", transaction });
+    } catch (error) {
+        console.error("Error updating payment:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
