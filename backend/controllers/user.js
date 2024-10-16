@@ -84,13 +84,29 @@ export const actionOnLendingStatus = async (req, res) => {
                 _id: { $ne: transaction_id }, // Exclude the current transaction
             });
 
-            // Step 2: Update the status of the accepted transaction
+            // Step 2: Fetch the lender details
+            const lender = await User.findById(transaction.lender_id);
+            if (!lender) {
+                return res.status(404).json({ message: 'Lender not found' });
+            }
+
+            // Step 3: Check if the lender has sufficient balance
+            if (lender.bank_details.balance < transaction.amount) {
+                return res.status(400).json({ message: 'Insufficient balance.' });
+            }
+
+            // Step 4: Deduct the loan amount from the lender's balance
+            lender.bank_details.balance -= transaction.amount;
+            await lender.save();
+
+            // Step 5: Update the status of the accepted transaction
             transaction.transaction_status = "pending";
             await transaction.save();
 
-            res.status(200).json({ message: 'Transaction accepted and conflicts removed.' });
+            res.status(200).json({ message: 'Transaction accepted, conflicts removed, and lender’s balance updated.' });
+
         } else if (action === "rejected") {
-            // Step 3: Remove the rejected transaction
+            // Step 6: Remove the rejected transaction
             await Transaction.findByIdAndDelete(transaction_id);
             res.status(200).json({ message: 'Transaction rejected and removed.' });
         } else {
