@@ -2,9 +2,14 @@ import Lending from "../models/lending.js";
 import User from "../models/user.js";
 import Transaction from "../models/transaction.js"
 
+import mongoose from 'mongoose'; // Ensure mongoose is imported
+
 export const getLenders = async (req, res) => {
     try {
-        const { money, interest, duration } = req.body;
+        const { money, interest, duration, id } = req.body;
+
+        // Convert id to ObjectId using 'new' keyword
+        const borrowerId = new mongoose.Types.ObjectId(id); // Using 'new' to create an ObjectId
 
         if (!money) {
             return res.status(400).json({ message: "Money is required." });
@@ -14,7 +19,8 @@ export const getLenders = async (req, res) => {
         const maxAmount = money * 1.1;
 
         const query = {
-            amount: { $gte: minAmount, $lte: maxAmount }
+            amount: { $gte: minAmount, $lte: maxAmount },
+            user_id: { $ne: borrowerId } // Exclude the lender with the given id
         };
 
         if (interest) {
@@ -31,17 +37,24 @@ export const getLenders = async (req, res) => {
         // Query lenders
         const lenders = await Lending.find(query);
 
-        // Fetch user details for each lender
+        // Fetch user details and check if the borrower has already requested this lender
         const formattedLenders = await Promise.all(
             lenders.map(async (lender) => {
                 const user = await User.findById(lender.user_id).select('name');
+
+                // Check if the borrower has requested this lender
+                const hasRequested = lender.requests.some(request =>
+                    request.borrower_id.equals(borrowerId) && request.status === 'requested'
+                );
+
                 return {
                     lending_id: lender._id,
                     lender_id: lender.user_id,
                     amount: lender.amount,
                     interest_range: `${lender.min_interest}-${lender.max_interest}%`,
                     duration: lender.duration,
-                    user_name: user ? user.name : 'Balan'
+                    user_name: user ? user.name : 'Balan',
+                    has_requested: hasRequested // Indicate if the borrower has already requested this lender
                 };
             })
         );
@@ -51,28 +64,47 @@ export const getLenders = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
 export const addRequest = async (req, res) => {
-    try{
+    try {
+        const { borrower_id, lending_id, lender_id, amount } = req.body;
 
-        const {lending_id,lender_id, borrower_id, amount} = req.body;
-        const transaction = new Transaction({lending_id,lender_id, borrower_id, amount, transaction_status:"requested"});
+        // Create a new transaction
+        const transaction = new Transaction({
+            lending_id,
+            lender_id,
+            borrower_id,
+            amount,
+            transaction_status: "requested"
+        });
+
+        // Save the transaction
         await transaction.save();
-        res.status(201).json(transaction);
 
-    }catch(error){
+        // Update the lender's requests
+        const updatedLending = await Lending.findByIdAndUpdate(
+            lending_id,
+            { $addToSet: { requests: { borrower_id, status: 'requested' } } },
+            { new: true }
+        );
+
+        // Log the updated lending for debugging
+        console.log('Updated Lending:', updatedLending);
+
+        res.status(201).json({ message: 'Lender requested successfully.', transaction });
+    } catch (error) {
+        console.error('Error adding request:', error); // Log the error
         res.status(500).json({ message: error.message });
-
     }
-}
 
+
+}
 export const getRequestedTransactions = async (req, res) => {
     try {
         const { id } = req.params; // Get borrower ID from request parameters
 
         // Step 1: Fetch transactions for the borrower with status "requested"
         const transactions = await Transaction.find({ borrower_id: id, transaction_status: "requested" });
-        
+
         // Debug log to check fetched transactions
         console.log("Fetched Transactions: ", transactions);
 
@@ -83,7 +115,7 @@ export const getRequestedTransactions = async (req, res) => {
         for (const transaction of transactions) {
             // Fetch lending details using lending_id from the transaction
             const lending = await Lending.findById(transaction.lending_id);
-            
+
             // Check if lending details were found
             if (lending) {
                 // Fetch lender's user details using user_id from the lending details
@@ -115,7 +147,7 @@ export const withdrawTransaction = async (req, res) => {
 
     try {
         // Extract transaction ID from the request parameters
-        const {id} = req.params;
+        const { id } = req.params;
         //console.log(id);
         // Remove the transaction from the Transaction collection
         const result = await Transaction.findByIdAndDelete(id);
@@ -131,4 +163,7 @@ export const withdrawTransaction = async (req, res) => {
         console.error("Error withdrawing transaction:", error);
         res.status(500).json({ message: error.message });
     }
-    }
+}
+
+
+

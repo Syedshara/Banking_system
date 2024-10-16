@@ -25,6 +25,7 @@ const lendingSchema = new mongoose.Schema({
         required: true,
         min: 1, // Ensure duration is at least 1 month
     },
+    requests: [{ borrower_id: mongoose.Schema.Types.ObjectId, status: { type: String, default: 'pending' } }]
 }, { timestamps: true }); // Automatically add createdAt and updatedAt fields
 
 const Lending = mongoose.model('Lending', lendingSchema);
