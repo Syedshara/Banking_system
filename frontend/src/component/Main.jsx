@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import bcryptjs from 'bcryptjs';
 
 const Main = () => {
-    // State to manage borrowers and lenders
     const [borrowers, setBorrowers] = useState([]);
     useEffect(() => {
         const userId = localStorage.getItem("user_id");
@@ -25,35 +24,28 @@ const Main = () => {
     const [user_pin, setPin] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
-
-
     const [lenders, setLenders] = useState([]);
-
-
-    // State to manage which box is currently visible
     const [activeTab, setActiveTab] = useState('borrowers');
-
-    // Fetch borrower data from the backend API
     useEffect(() => {
         const fetchBorrowers = async () => {
-            const userId = localStorage.getItem('user_id'); // Get user_id from local storage
+            const userId = localStorage.getItem('user_id'); 
             if (!userId) {
                 console.error('User ID not found in local storage.');
                 return;
             }
 
             try {
-                const response = await fetch(`http://10.16.58.118:3000/users/lending_requests/${userId}`); // Pass user_id to the API endpoint
+                const response = await fetch(`http://10.16.58.118:3000/users/lending_requests/${userId}`); 
                 const data = await response.json();
 
                 const formattedBorrowers = data.map((item) => ({
-                    id: item.transaction_id, // Use a unique identifier
+                    id: item.transaction_id, 
                     name: item.borrower_name,
                     amount: item.amount,
                     interestRate: item.interest_rate,
                     lending_id: item.lending_id,
                     borrower_id: item.borrower_id,
-                    duration: item.duration, // assuming duration is part of the response
+                    duration: item.duration,
                 }));
                 setBorrowers(formattedBorrowers);
             } catch (error) {
@@ -62,31 +54,28 @@ const Main = () => {
         };
 
         fetchBorrowers();
-    }, []); // Empty dependency array ensures this runs only once on component mount
-
-    // Fetch lender data from the backend API
+    }, []); 
     useEffect(() => {
         const fetchLenders = async () => {
-            const userId = localStorage.getItem('user_id'); // Get user_id from local storage
+            const userId = localStorage.getItem('user_id');
             if (!userId) {
                 console.error('User ID not found in local storage.');
                 return;
             }
 
             try {
-                const response = await fetch(`http://10.16.58.118:3000/borrow/requested_transactions/${userId}`); // Pass user_id to the API endpoint
+                const response = await fetch(`http://10.16.58.118:3000/borrow/requested_transactions/${userId}`); 
                 const data = await response.json();
 
 
                 const formattedLenders = data.map((transaction) => ({
-                    id: transaction.transactionId, // Use transaction ID as the identifier
+                    id: transaction.transactionId, 
                     lenderName: transaction.lenderName,
                     lenderID: transaction.lenderID,
-                    lendingId: transaction.lending_id, // Lender's lending ID
-                    amount: transaction.amount, // Requested amount
+                    lendingId: transaction.lending_id, 
+                    amount: transaction.amount, 
                     interestRate: transaction.interestRate,
-                    duration: transaction.duration, // Duration of the loan
-                    // Max interest rate
+                    duration: transaction.duration, 
                 }));
                 setLenders(formattedLenders);
             } catch (error) {
@@ -95,9 +84,7 @@ const Main = () => {
         };
 
         fetchLenders();
-    }, []); // Empty dependency array ensures this runs only once on component mount
-
-    // Handle accept or decline request function
+    }, []); 
     const handleAcceptRequest = async (request, actionType) => {
 
         const pin = await promptForPin();
@@ -160,17 +147,13 @@ const Main = () => {
             if (response.ok) {
                 console.log(data.message);
                 setLenders((prevLenders) => prevLenders.filter((item) => item.id !== lender.id));
-                // Handle success (e.g., show notification)
             } else {
-                console.error(data.message); // Handle error
+                console.error(data.message); 
             }
         } catch (error) {
             console.error('Error:', error);
         }
     };
-
-    // Example of usage: handleWithdraw('670e6234bcfe2a58e7c8cdef', 'user_id_here');
-
     const promptForPin = () => {
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
@@ -254,13 +237,12 @@ const Main = () => {
                 const rpin = pinValues.join('');
                 document.body.removeChild(overlay);
                 document.body.removeChild(pinContainer);
-                // Compare the entered PIN with the hashed user PIN
                 const isMatch = bcryptjs.compareSync(rpin, user_pin);
                 if (!isMatch) {
                     showMessageCard("Invalid PIN");
-                    resolve(null); // Resolve with null if the PIN is invalid
+                    resolve(null); 
                 } else {
-                    resolve(rpin); // Resolve with the valid PIN
+                    resolve(rpin); 
                 }
             });
 
@@ -287,7 +269,7 @@ const Main = () => {
         messageCard.style.backgroundColor = 'white';
         messageCard.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
         messageCard.style.zIndex = '1000';
-        messageCard.style.borderRadius = '10px'; // Added border radius
+        messageCard.style.borderRadius = '10px'; 
         messageCard.innerText = message;
 
         document.body.appendChild(overlay);
@@ -301,7 +283,6 @@ const Main = () => {
 
     return (
         <div className="p-5 w-full mt-5 mb-5 max-w-7xl ml-10 pt-10">
-            {/* Tabs for Borrower and Lender */}
             <div className="flex justify-between mb-5">
                 <Button onClick={() => setActiveTab('borrowers')} color={activeTab === 'borrowers' ? 'cyan' : 'gray'}>
                     Inboxes
@@ -310,8 +291,6 @@ const Main = () => {
                     Requests
                 </Button>
             </div>
-
-            {/* Display Requests Section */}
             <div className="grid p-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 overflow-y-auto h-[700px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 {activeTab === 'borrowers' ? (
                     borrowers.length === 0 ? (
@@ -319,19 +298,14 @@ const Main = () => {
                     ) : (
                         borrowers.map((borrower) => (
                             <Card key={borrower.id} className="shadow-lg py-5 pt-5 h-80">
-                                {/* Borrower Name */}
                                 <div className="flex items-center gap-3 mb-3">
                                     <p className="text-lg text-nowrap font-semibold">Borrower Name:</p>
                                     <p className="text-md">{borrower.name}</p>
                                 </div>
-
-                                {/* Amount */}
                                 <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Amount:</p>
                                     <p className="text-md">₹{borrower.amount}</p>
                                 </div>
-
-                                {/* Interest Rate */}
                                 <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Interest Rate:</p>
                                     <p className="text-md">{borrower.interestRate}%</p>
@@ -340,8 +314,6 @@ const Main = () => {
                                     <p className="text-lg font-semibold">Duration :</p>
                                     <p className="text-md">{borrower.duration} months</p>
                                 </div>
-
-                                {/* Accept and Decline Buttons */}
                                 <div className="flex justify-between">
                                     <Button color="green" onClick={() => handleAcceptRequest(borrower, 'accepted')}>
                                         Accept
@@ -359,19 +331,16 @@ const Main = () => {
                     ) : (
                         lenders.map((lender) => (
                             <Card key={lender.id} className="p-4 shadow-lg pt-5 h-80">
-                                {/* Lender Name */}
                                 <div className="flex items-center gap-3 mb-3">
                                     <p className="text-lg font-semibold">Lender Name:</p>
                                     <p className="text-md">{lender.lenderName}</p>
                                 </div>
 
-                                {/* Amount */}
                                 <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Amount:</p>
                                     <p className="text-md">₹{lender.amount}</p>
                                 </div>
 
-                                {/* Interest Rate */}
                                 <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Interest Rate:</p>
                                     <p className="text-md">{lender.interestRate}%</p>
@@ -382,8 +351,6 @@ const Main = () => {
                                     <p className="text-md">{lender.duration} months</p>
                                 </div>
 
-
-                                {/* Withdraw Button */}
                                 <Button color="red" onClick={() => handleWithdraw(lender)}>
                                     Withdraw Request
                                 </Button>

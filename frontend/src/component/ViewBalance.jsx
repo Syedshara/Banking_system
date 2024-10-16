@@ -32,8 +32,7 @@ const ViewBalance = () => {
     const handlePinSubmit = (e) => {
         e.preventDefault();
         if (pin.join('').length === 6) {
-            // Simulate fetching balance
-            setBalance(balance); // Replace this with actual logic to fetch balance
+            setBalance(balance);
             setCurrentScreen(3);
         } else {
             alert('Please enter a valid 6-digit PIN.');
@@ -109,7 +108,7 @@ const ViewBalance = () => {
                             type="button"
                             className="mx-auto mt-6 font-bold"
                             gradientDuoTone="redToYellow"
-                            onClick={() => setCurrentScreen(1)} // Reset to PIN entry
+                            onClick={() => setCurrentScreen(1)} 
                         >
                             Back
                         </Button>
