@@ -193,7 +193,6 @@ export const getNotifications = async (req, res) => {
 
         const currentDate = new Date();
         console.log("Current Date: ", currentDate); // Log current date
-        const notifications = [];
 
         // Step 2: Loop through transactions to fetch lending info and create notifications
         for (const transaction of transactions) {
@@ -242,7 +241,7 @@ export const getNotifications = async (req, res) => {
 
 
             const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-
+            const notifications = [];
             console.log(dueDate > currentDate);
             if (dueDate > currentDate) {
                 //console.log("1st if");
@@ -250,7 +249,7 @@ export const getNotifications = async (req, res) => {
                     type: 'payment_reminder',
                     lender_name: lender.name,
                     lender_amount: lending.amount,
-                    message: `Reminder: You have a payment of $${lending.amount} to ${lender.name} on ${dueDate.toISOString().split('T')[0]}.`,
+                    message: `Reminder: You havett  a immediate payment of ₹${lending.amount} to ${lender.name} on ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
             }
@@ -262,7 +261,7 @@ export const getNotifications = async (req, res) => {
                     type: 'overdue_alert',
                     lender_name: lender.name,
                     lender_amount: lending.amount,
-                    message: `Alert: You have an overdue payment of $${lending.amount} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
+                    message: `Alert: You have an overdue payment of ₹${lending.amount} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
             }
