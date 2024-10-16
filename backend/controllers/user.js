@@ -178,7 +178,7 @@ export const getNotifications = async (req, res) => {
         const transactions = await Transaction.find({ borrower_id: userId });
 
         // Debug log to check fetched transactions
-        console.log("Fetched Transactions: ", transactions);
+        // console.log("Fetched Transactions: ", transactions);
 
         const currentDate = new Date();
         console.log("Current Date: ", currentDate); // Log current date
@@ -190,18 +190,18 @@ export const getNotifications = async (req, res) => {
             const lending = await Lending.findById(transaction.lending_id); // Using transaction.lending_id directly
             
             // Debug log to check fetched lending
-            console.log("Fetched Lending: ", lending);
+            //console.log("Fetched Lending: ", lending);
             
             if (!lending) {
                 continue; // Skip if no lending found
             }
 
             // Log updatedAt value from transaction
-            console.log("Updated At (transaction): ", transaction.updatedAt);
+            //console.log("Updated At (transaction): ", transaction.updatedAt);
 
             // Use updatedAt from transaction for due date calculation
             const updatedAtDate = new Date(transaction.updatedAt);
-            console.log("Parsed Updated At Date: ", updatedAtDate);
+            //console.log("Parsed Updated At Date: ", updatedAtDate);
 
             // Check if updatedAtDate is valid
             if (isNaN(updatedAtDate.getTime())) {
@@ -213,7 +213,7 @@ export const getNotifications = async (req, res) => {
             const lender = await User.findById(transaction.lender_id); // Fetch lender details
 
             // Debug log to check fetched lender
-            console.log("Fetched Lender: ", lender);
+            //console.log("Fetched Lender: ", lender);
 
             if (!lender) {
                 continue; // Skip if no lender found
@@ -224,13 +224,21 @@ export const getNotifications = async (req, res) => {
             dueDate.setMonth(dueDate.getMonth() + lending.duration); // Add duration to the updated date
 
             // Debug log to check due dates
-            console.log("Due Date: ", dueDate);
+            //console.log("Due Date: ", dueDate);
 
             // Check for Payment Reminders (3 days before due date)
+            
+
+
             const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-            if (dueDate > currentDate && dueDate <= threeDaysFromNow) {
+
+            console.log(dueDate > currentDate);
+            if (dueDate > currentDate) {
+                //console.log("1st if");
                 notifications.push({
                     type: 'payment_reminder',
+                    lender_name: lender.name,
+                    lender_amount: lending.amount,
                     message: `Reminder: You have a payment of $${lending.amount} to ${lender.name} on ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
@@ -238,8 +246,11 @@ export const getNotifications = async (req, res) => {
 
             // Check for Overdue Alerts
             if (dueDate < currentDate) {
+                //console.log("2nd if");
                 notifications.push({
                     type: 'overdue_alert',
+                    lender_name: lender.name,
+                    lender_amount: lending.amount,
                     message: `Alert: You have an overdue payment of $${lending.amount} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
