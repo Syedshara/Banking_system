@@ -30,7 +30,7 @@ export const createLending = async (req, res) => {
         await lending.save();
 
         // Optionally update user's balance (if you want to reduce it)
-        user.bank_details.balance -= amount;
+       
         await user.save();
 
         // Respond with the created lending record

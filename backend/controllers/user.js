@@ -85,7 +85,7 @@ export const actionOnLendingStatus = async (req, res) => {
             });
 
             // Step 2: Update the status of the accepted transaction
-            transaction.transaction_status = "accepted";
+            transaction.transaction_status = "pending";
             await transaction.save();
 
             res.status(200).json({ message: 'Transaction accepted and conflicts removed.' });
@@ -153,3 +153,91 @@ export const getTransactionHistory = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+export const getNotifications = async (req, res) => {
+    try {
+        const userId = req.params.id; // Get the user ID from the request parameters
+        
+        // Step 1: Fetch all transactions where the user is a borrower
+        const transactions = await Transaction.find({ borrower_id: userId });
+
+        // Debug log to check fetched transactions
+        console.log("Fetched Transactions: ", transactions);
+
+        const currentDate = new Date();
+        console.log("Current Date: ", currentDate); // Log current date
+        const notifications = [];
+
+        // Step 2: Loop through transactions to fetch lending info and create notifications
+        for (const transaction of transactions) {
+            // Fetch the lending details manually
+            const lending = await Lending.findById(transaction.lending_id); // Using transaction.lending_id directly
+            
+            // Debug log to check fetched lending
+            console.log("Fetched Lending: ", lending);
+            
+            if (!lending) {
+                continue; // Skip if no lending found
+            }
+
+            // Log createdAt value
+            console.log("Created At (lending): ", lending.createdAt);
+
+            // Convert createdAt to a Date object
+            const createdAtDate = new Date(lending.createdAt);
+            console.log("Parsed Created At Date: ", createdAtDate);
+
+            // Check if createdAtDate is valid
+            if (isNaN(createdAtDate.getTime())) {
+                console.error("Invalid createdAt date:", lending.createdAt);
+                continue; // Skip if createdAt is invalid
+            }
+
+            // Fetch the borrower and lender's user details
+            const lender = await User.findById(transaction.lender_id); // Fetch lender details
+
+            // Debug log to check fetched users
+            console.log("Fetched Lender: ", lender);
+
+            if (!lender) {
+                continue; // Skip if no borrower or lender found
+            }
+
+            // Calculate due date based on lending duration
+            const dueDate = new Date(createdAtDate);
+            dueDate.setMonth(dueDate.getMonth() + lending.duration); // Add duration to the created date
+
+            // Debug log to check due dates
+            console.log("Due Date: ", dueDate);
+
+            // Check for Payment Reminders (3 days before due date)
+            const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
+            if (dueDate > currentDate && dueDate <= threeDaysFromNow) {
+                notifications.push({
+                    type: 'payment_reminder',
+                    message: `Reminder: You have a payment of $${lending.amount} to ${lender.name} on ${dueDate.toISOString().split('T')[0]}.`,
+                    date: currentDate.toISOString().split('T')[0],
+                });
+            }
+
+            // Check for Overdue Alerts
+            if (dueDate < currentDate) {
+                notifications.push({
+                    type: 'overdue_alert',
+                    message: `Alert: You have an overdue payment of $${lending.amount} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
+                    date: currentDate.toISOString().split('T')[0],
+                });
+            }
+        }
+
+        // Debug log to check notifications before sending response
+        console.log("Notifications: ", notifications);
+
+        // Step 3: Send the notifications as a response
+        res.status(200).json(notifications);
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
