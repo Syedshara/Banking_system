@@ -1,9 +1,32 @@
 import { Button, Card } from 'flowbite-react';
 import React, { useEffect, useState } from 'react';
+import bcryptjs from 'bcryptjs';
 
 const Main = () => {
     // State to manage borrowers and lenders
     const [borrowers, setBorrowers] = useState([]);
+    useEffect(() => {
+        const userId = localStorage.getItem("user_id");
+        if (userId) {
+            fetch(`http://10.16.58.118:3000/users/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    setPin(data.bank_details.pin);
+                    setLoading(false);
+                })
+                .catch((error) => {
+                    console.error("Error fetching user data:", error);
+                    setError("Failed to fetch user data.");
+                    setLoading(false);
+                });
+        }
+    }, []);
+
+    const [user_pin, setPin] = useState(null);
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
+    
+    
     const [lenders, setLenders] = useState([
         {
             id: 5,
@@ -65,9 +88,16 @@ const Main = () => {
 
     // Handle accept or decline request function
     const handleAcceptRequest = async (request, actionType) => {
+        const pin = await promptForPin();
+        if (!pin) {
+            showMessageCard('PIN entry cancelled.');
+            return;
+        }
+
         const payload = {
             transaction_id: request.id,
             action: actionType,
+            pin: pin,
         };
 
         try {
@@ -81,14 +111,143 @@ const Main = () => {
 
             const result = await response.json();
             if (response.ok) {
-                alert(`Request ${actionType}ed for ${request.name}`);
+                showMessageCard(`Request ${actionType}ed for ${request.name}`);
             } else {
                 console.error('Error processing request:', result);
-                alert('Something went wrong. Please try again.');
+                showMessageCard('Something went wrong. Please try again.');
             }
         } catch (error) {
             console.error('Error:', error);
+            showMessageCard('Something went wrong. Please try again.');
         }
+    };
+
+    const promptForPin = () => {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.zIndex = '999';
+
+            const pinContainer = document.createElement('div');
+            pinContainer.className = 'w-full max-w-sm flex flex-col justify-center';
+            pinContainer.style.position = 'fixed';
+            pinContainer.style.top = '50%';
+            pinContainer.style.left = '50%';
+            pinContainer.style.transform = 'translate(-50%, -50%)';
+            pinContainer.style.padding = '20px';
+            pinContainer.style.backgroundColor = 'white';
+            pinContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+            pinContainer.style.zIndex = '1000';
+            pinContainer.style.borderRadius = '10px';
+
+            const label = document.createElement('label');
+            label.className = 'text-slate-100 text-md font-semibold';
+            label.innerText = 'Your PIN:';
+            label.style.color = '#333';
+            label.style.fontFamily = 'Arial, sans-serif';
+            label.style.opacity = '2';
+            label.style.fontSize = '18px';
+            label.style.fontFamily = 'Arial, sans-serif';
+            pinContainer.appendChild(label);
+
+            const pinInputs = [];
+            const pinValues = Array(6).fill('');
+            const handlePinChange = (index, value) => {
+                pinValues[index] = value;
+                if (value && index < 5) {
+                    pinInputs[index + 1].focus();
+                }
+            };
+
+            const handlePinKeyDown = (index, e) => {
+                if (e.key === 'Backspace' && !pinValues[index] && index > 0) {
+                    pinInputs[index - 1].focus();
+                } else if (e.key === 'Enter') {
+                    submitButton.click();
+                } else if (e.key === 'Escape') {
+                    document.body.removeChild(overlay);
+                    document.body.removeChild(pinContainer);
+                    resolve(null);
+                }
+            };
+
+            const pinInputContainer = document.createElement('div');
+            pinInputContainer.className = 'flex space-x-2';
+            for (let i = 0; i < 6; i++) {
+                const input = document.createElement('input');
+                input.type = 'password';
+                input.maxLength = 1;
+                input.className = 'w-10 text-center';
+                input.style.borderRadius = '5px';
+                input.addEventListener('input', (e) => handlePinChange(i, e.target.value));
+                input.addEventListener('keydown', (e) => handlePinKeyDown(i, e));
+                pinInputContainer.appendChild(input);
+                pinInputs.push(input);
+            }
+            pinContainer.appendChild(pinInputContainer);
+
+            const submitButton = document.createElement('button');
+            submitButton.innerText = 'Submit';
+            submitButton.style.marginTop = '20px';
+            submitButton.className = 'w-full ml-2';
+            submitButton.style.color = 'green';
+            pinContainer.appendChild(submitButton);
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(pinContainer);
+
+            submitButton.addEventListener('click', () => {
+                const rpin = pinValues.join('');
+                document.body.removeChild(overlay);
+                document.body.removeChild(pinContainer);
+                // Compare the entered PIN with the hashed user PIN
+                const isMatch = bcryptjs.compareSync(rpin, user_pin);
+                if (!isMatch) {
+                    showMessageCard("Invalid PIN");
+                    resolve(null); // Resolve with null if the PIN is invalid
+                } else {
+                    resolve(rpin); // Resolve with the valid PIN
+                }
+            });
+
+            pinInputs[0].focus();
+        });
+    };
+
+    const showMessageCard = (message) => {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        overlay.style.zIndex = '999';
+
+        const messageCard = document.createElement('div');
+        messageCard.style.position = 'fixed';
+        messageCard.style.top = '50%';
+        messageCard.style.left = '50%';
+        messageCard.style.transform = 'translate(-50%, -50%)';
+        messageCard.style.padding = '20px';
+        messageCard.style.backgroundColor = 'white';
+        messageCard.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+        messageCard.style.zIndex = '1000';
+        messageCard.style.borderRadius = '10px'; // Added border radius
+        messageCard.innerText = message;
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(messageCard);
+
+        setTimeout(() => {
+            document.body.removeChild(overlay);
+            document.body.removeChild(messageCard);
+        }, 3000);
     };
 
     return (
