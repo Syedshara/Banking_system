@@ -10,15 +10,19 @@ const ViewTransactions = () => {
         const fetchTransactions = async () => {
             try {
                 // Replace with real `port_id` and `user_id`
-                // const response = await fetch(`http://port_id/lend/user/${user_id}?filter=${filter}`);
-                // const data = await response.json();
+                const userId = localStorage.getItem('user_id');
+                console.log(userId);
+                 const response = await fetch(`http://localhost:3000/users/transaction_history/${userId}`);
+                 const data = await response.json();
+                 console.log(data);
 
                 // For testing, using static data
-                const data = [
-                    { id: 1, date: '2024-10-14', senderReceiver: 'John Doe', amount: '500', type: 'Lender', status: 'Paid' },
-                    { id: 2, date: '2024-10-13', senderReceiver: 'Jane Doe', amount: '1000', type: 'Borrower', status: 'Pending' },
-                    { id: 3, date: '2024-10-12', senderReceiver: 'Mark Smith', amount: '150', type: 'Lender', status: 'Overdue' },
-                ];
+                //const data = [
+                  //  { id: 1, date: '2024-10-14', senderReceiver: 'John Doe', amount: '500', type: 'Lender', status: 'Paid' },
+                    //{ id: 2, date: '2024-10-13', senderReceiver: 'Jane Doe', amount: '1000', type: 'Borrower', status: 'Pending' },
+                    //{ id: 3, date: '2024-10-12', senderReceiver: 'Mark Smith', amount: '150', type: 'Lender', status: 'Overdue' },
+                //];
+
 
                 if (filter !== 'All') {
                     const filteredData = data.filter(transaction => transaction.status === filter);
@@ -61,30 +65,31 @@ const ViewTransactions = () => {
                         <Table.HeadCell>Status</Table.HeadCell>
                     </Table.Head>
                     <Table.Body className="divide-y">
-                        {transactions.map((transaction) => (
-                            <Table.Row key={transaction.id} className="bg-white hover:bg-gray-100">
+                        {transactions.map((transaction, index) => (
+                            <Table.Row key={transaction.id || index} className="bg-white hover:bg-gray-100">
                                 <Table.Cell>{transaction.date}</Table.Cell>
-                                <Table.Cell>{transaction.senderReceiver}</Table.Cell>
+                                <Table.Cell>{transaction.name}</Table.Cell>
                                 <Table.Cell>
                                     <span
-                                        className={`font-semibold ${transaction.type === 'Borrower'
-                                            ? 'text-green-600' // Green for Borrowers
-                                            : 'text-red-600' // Red for Lenders
-                                            }`}
+                                        className={`font-semibold ${transaction.role === 'borrower'
+                                            ? 'text-green-600'
+                                            : 'text-red-600'}`}
                                     >
                                         ₹{transaction.amount}
                                     </span>
                                 </Table.Cell>
-                                <Table.Cell><span
-                                    className={` ${transaction.status === 'Overdue'
-                                        ? 'text-yellow-300 font-semibold'
-                                        : 'font-normal'
-                                        }`}
-                                >
-                                    {transaction.status}
-                                </span></Table.Cell>
+                                <Table.Cell>
+                                    <span
+                                        className={` ${transaction.status === 'Overdue'
+                                            ? 'text-yellow-300 font-semibold'
+                                            : 'font-normal'}`}
+                                    >
+                                        {transaction.status}
+                                    </span>
+                                </Table.Cell>
                             </Table.Row>
                         ))}
+
                     </Table.Body>
                 </Table>
             </Card>

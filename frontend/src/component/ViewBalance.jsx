@@ -103,7 +103,7 @@ const ViewBalance = () => {
                     <Card className="text-center">
                         <h3 className="text-xl font-semibold mb-3">Available Balance</h3>
                         <p className="text-2xl text-green-600 font-bold">
-                            {"₹" + balance.toLocaleString()}
+                            {"₹" + balance.toLocaleString()} 
                         </p>
                         <Button
                             type="button"
