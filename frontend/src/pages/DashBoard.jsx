@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import SideBar from '../component/SideBar';
 import TransferMoney from '../component/BorrowMoney';
+import Repay from '../component/Repay';
 import ViewTransactions from '../component/ViewTransactions';
 import ViewBalance from '../component/ViewBalance';
 import LendMoney from '../component/LendMoney';
@@ -14,10 +15,9 @@ const DashBoard = () => {
     const [tag, setTag] = useState("");
 
     useEffect(() => {
-        // Get the query parameters
         const params = new URLSearchParams(location.search);
         const currentTag = params.get('tag');
-        setTag(currentTag || ""); // Set tag if available, else default to empty string
+        setTag(currentTag || ""); 
     }, [location.search]);
 
     return (
@@ -28,6 +28,7 @@ const DashBoard = () => {
             {tag == 'transactions' && <ViewTransactions />}
             {tag == 'borrow' && <BorrowMoney />}
             {tag == "lend" && <LendMoney />}
+            {tag == "repay" && <Repay />}
             {tag == "balance" && <ViewBalance />}
             {tag == "notification" && <Notification />}
             {tag == "home" && <Main />}

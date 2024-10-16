@@ -3,7 +3,7 @@ import { Sidebar } from "flowbite-react";
 import { HiLogout } from "react-icons/hi";
 import { GrTransaction } from "react-icons/gr";
 import { useNavigate, useLocation } from "react-router-dom";
-import { RiSendPlaneFill, RiUserReceived2Fill } from "react-icons/ri";
+import { RiSendPlaneFill, RiUserReceived2Fill, RiCashLine } from "react-icons/ri";
 import { MdNotificationsActive, MdAccountBalanceWallet } from "react-icons/md";
 
 const SideBar = () => {
@@ -24,8 +24,8 @@ const SideBar = () => {
     }, [location.search]);
 
     const handleLogout = () => {
-        localStorage.removeItem('user_id'); // Clear user_id from localStorage
-        navigate('/'); // Redirect to the homepage or login page
+        localStorage.removeItem('user_id'); 
+        navigate('/'); 
     };
 
     return (
@@ -37,6 +37,9 @@ const SideBar = () => {
                     </Sidebar.Item>
                     <Sidebar.Item icon={RiSendPlaneFill} className='cursor-pointer' active={tag === 'lend'} onClick={() => handleNavigation('lend')}>
                         Lend Money
+                    </Sidebar.Item>
+                    <Sidebar.Item icon={RiCashLine} className='cursor-pointer' active={tag === 'repay'} onClick={() => handleNavigation('repay')}>
+                        Repay Money
                     </Sidebar.Item>
                     <Sidebar.Item icon={GrTransaction} className='cursor-pointer' onClick={() => handleNavigation('transactions')}>
                         View Transactions
