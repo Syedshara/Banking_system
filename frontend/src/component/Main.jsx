@@ -44,7 +44,7 @@ const Main = () => {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/users/lending_requests/${userId}`); // Pass user_id to the API endpoint
+                const response = await fetch(`http://10.16.58.118:3000/users/lending_requests/670e6234bcfe2a58e7c8cdef`); // Pass user_id to the API endpoint
                 const data = await response.json();
 
                 const formattedBorrowers = data.map((item) => ({
@@ -52,6 +52,7 @@ const Main = () => {
                     name: item.borrower_name,
                     amount: item.amount,
                     interestRate: item.interest_rate,
+                    duration: item.duration, // assuming duration is part of the response
                 }));
                 setBorrowers(formattedBorrowers);
             } catch (error) {
@@ -62,10 +63,32 @@ const Main = () => {
         fetchBorrowers();
     }, []); // Empty dependency array ensures this runs only once on component mount
 
-    // Handle accept request function
-    const handleAcceptRequest = (request, type) => {
-        console.log(`${type} request accepted:`, request);
-        alert(`Accepted request from ${request.name}`);
+    // Handle accept or decline request function
+    const handleAcceptRequest = async (request, actionType) => {
+        const payload = {
+            transaction_id: request.id,
+            action: actionType,
+        };
+
+        try {
+            const response = await fetch('http://10.16.58.118:3000/users/lending_status', { // Replace with actual backend URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(`Request ${actionType}ed for ${request.name}`);
+            } else {
+                console.error('Error processing request:', result);
+                alert('Something went wrong. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
 
     return (
@@ -87,10 +110,10 @@ const Main = () => {
                         <p>No borrower requests available.</p>
                     ) : (
                         borrowers.map((borrower) => (
-                            <Card key={borrower.id} className="shadow-lg py-5  w-72 h-80">
+                            <Card key={borrower.id} className="shadow-lg py-5 pt-5 h-80">
                                 {/* Borrower Name */}
-                                <div className="flex items-center gap-6 mb-3">
-                                    <p className="text-lg font-semibold">Borrower Name:</p>
+                                <div className="flex items-center gap-3 mb-3">
+                                    <p className="text-lg text-nowrap font-semibold">Borrower Name:</p>
                                     <p className="text-md">{borrower.name}</p>
                                 </div>
 
@@ -110,12 +133,12 @@ const Main = () => {
                                     <p className="text-md">{borrower.duration} months</p>
                                 </div>
 
-                                {/* Accept Request Button */}
+                                {/* Accept and Decline Buttons */}
                                 <div className="flex justify-between">
-                                    <Button color="green" onClick={() => handleAcceptRequest(borrower, 'Borrower')}>
+                                    <Button color="green" onClick={() => handleAcceptRequest(borrower, 'accepted')}>
                                         Accept
                                     </Button>
-                                    <Button color="red" onClick={() => handleAcceptRequest(borrower, 'Borrower')}>
+                                    <Button color="red" onClick={() => handleAcceptRequest(borrower, 'rejected')}>
                                         Decline
                                     </Button>
                                 </div>
@@ -146,8 +169,8 @@ const Main = () => {
                                     <p className="text-md">{lender.interestRate}%</p>
                                 </div>
 
-                                {/* Accept Request Button */}
-                                <Button color="red" onClick={() => handleAcceptRequest(lender, 'Lender')}>
+                                {/* Withdraw Button */}
+                                <Button color="red" onClick={() => handleAcceptRequest(lender, 'withdraw')}>
                                     Withdraw Request
                                 </Button>
                             </Card>
