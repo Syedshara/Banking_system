@@ -5,19 +5,13 @@ const Notification = () => {
     const [notifications, setNotifications] = useState([]);
 
     useEffect(() => {
-        // Example API call to fetch notifications
         const fetchNotifications = async () => {
             try {
-                // Replace with real API endpoint
-                // const response = await fetch('http://api_endpoint/notifications');
-                // const data = await response.json();
+                const userId = localStorage.getItem('user_id');
+                const response = await fetch(`http://localhost:3000/users/notification/${userId}`);
+                const data = await response.json();
 
-                // For testing, using static data
-                const data = [
-                    { id: 1, title: 'Payment Reminder', message: 'Your payment is due on 2024-10-20.', date: '2024-10-15' },
-                    { id: 2, title: 'Overdue Alert', message: 'Your payment is overdue by 5 days.', date: '2024-10-12' },
-                    { id: 3, title: 'New Offer', message: 'Get 20% off on your next transaction!', date: '2024-10-10' },
-                ];
+                console.log({data});
 
                 setNotifications(data);
             } catch (error) {
@@ -36,7 +30,7 @@ const Notification = () => {
                 {notifications.map((notification) => (
                     <Card key={notification.id} className="w-full p-2 shadow-lg bg-white rounded-lg">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-semibold">{notification.title}</h3>
+                            <h3 className="text-lg font-semibold">{notification.type}</h3>
                             <span className="text-xs text-gray-500">{notification.date}</span>
                         </div>
                         <p className="text-gray-600 text-sm">{notification.message}</p>

@@ -84,13 +84,29 @@ export const actionOnLendingStatus = async (req, res) => {
                 _id: { $ne: transaction_id }, // Exclude the current transaction
             });
 
-            // Step 2: Update the status of the accepted transaction
+            // Step 2: Fetch the lender details
+            const lender = await User.findById(transaction.lender_id);
+            if (!lender) {
+                return res.status(404).json({ message: 'Lender not found' });
+            }
+
+            // Step 3: Check if the lender has sufficient balance
+            if (lender.bank_details.balance < transaction.amount) {
+                return res.status(400).json({ message: 'Insufficient balance.' });
+            }
+
+            // Step 4: Deduct the loan amount from the lender's balance
+            lender.bank_details.balance -= transaction.amount;
+            await lender.save();
+
+            // Step 5: Update the status of the accepted transaction
             transaction.transaction_status = "pending";
             await transaction.save();
 
-            res.status(200).json({ message: 'Transaction accepted and conflicts removed.' });
+            res.status(200).json({ message: 'Transaction accepted, conflicts removed, and lender’s balance updated.' });
+
         } else if (action === "rejected") {
-            // Step 3: Remove the rejected transaction
+            // Step 6: Remove the rejected transaction
             await Transaction.findByIdAndDelete(transaction_id);
             res.status(200).json({ message: 'Transaction rejected and removed.' });
         } else {
@@ -162,7 +178,7 @@ export const getNotifications = async (req, res) => {
         const transactions = await Transaction.find({ borrower_id: userId });
 
         // Debug log to check fetched transactions
-        console.log("Fetched Transactions: ", transactions);
+        // console.log("Fetched Transactions: ", transactions);
 
         const currentDate = new Date();
         console.log("Current Date: ", currentDate); // Log current date
@@ -174,47 +190,55 @@ export const getNotifications = async (req, res) => {
             const lending = await Lending.findById(transaction.lending_id); // Using transaction.lending_id directly
             
             // Debug log to check fetched lending
-            console.log("Fetched Lending: ", lending);
+            //console.log("Fetched Lending: ", lending);
             
             if (!lending) {
                 continue; // Skip if no lending found
             }
 
-            // Log createdAt value
-            console.log("Created At (lending): ", lending.createdAt);
+            // Log updatedAt value from transaction
+            //console.log("Updated At (transaction): ", transaction.updatedAt);
 
-            // Convert createdAt to a Date object
-            const createdAtDate = new Date(lending.createdAt);
-            console.log("Parsed Created At Date: ", createdAtDate);
+            // Use updatedAt from transaction for due date calculation
+            const updatedAtDate = new Date(transaction.updatedAt);
+            //console.log("Parsed Updated At Date: ", updatedAtDate);
 
-            // Check if createdAtDate is valid
-            if (isNaN(createdAtDate.getTime())) {
-                console.error("Invalid createdAt date:", lending.createdAt);
-                continue; // Skip if createdAt is invalid
+            // Check if updatedAtDate is valid
+            if (isNaN(updatedAtDate.getTime())) {
+                console.error("Invalid updatedAt date:", transaction.updatedAt);
+                continue; // Skip if updatedAt is invalid
             }
 
-            // Fetch the borrower and lender's user details
+            // Fetch the lender's user details
             const lender = await User.findById(transaction.lender_id); // Fetch lender details
 
-            // Debug log to check fetched users
-            console.log("Fetched Lender: ", lender);
+            // Debug log to check fetched lender
+            //console.log("Fetched Lender: ", lender);
 
             if (!lender) {
-                continue; // Skip if no borrower or lender found
+                continue; // Skip if no lender found
             }
 
-            // Calculate due date based on lending duration
-            const dueDate = new Date(createdAtDate);
-            dueDate.setMonth(dueDate.getMonth() + lending.duration); // Add duration to the created date
+            // Calculate due date based on transaction updatedAt and lending duration
+            const dueDate = new Date(updatedAtDate);
+            dueDate.setMonth(dueDate.getMonth() + lending.duration); // Add duration to the updated date
 
             // Debug log to check due dates
-            console.log("Due Date: ", dueDate);
+            //console.log("Due Date: ", dueDate);
 
             // Check for Payment Reminders (3 days before due date)
+            
+
+
             const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-            if (dueDate > currentDate && dueDate <= threeDaysFromNow) {
+
+            console.log(dueDate > currentDate);
+            if (dueDate > currentDate) {
+                //console.log("1st if");
                 notifications.push({
                     type: 'payment_reminder',
+                    lender_name: lender.name,
+                    lender_amount: lending.amount,
                     message: `Reminder: You have a payment of $${lending.amount} to ${lender.name} on ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
@@ -222,8 +246,11 @@ export const getNotifications = async (req, res) => {
 
             // Check for Overdue Alerts
             if (dueDate < currentDate) {
+                //console.log("2nd if");
                 notifications.push({
                     type: 'overdue_alert',
+                    lender_name: lender.name,
+                    lender_amount: lending.amount,
                     message: `Alert: You have an overdue payment of $${lending.amount} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
@@ -240,4 +267,3 @@ export const getNotifications = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
