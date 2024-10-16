@@ -189,6 +189,8 @@ export const getNotifications = async (req, res) => {
         const currentDate = new Date();
         console.log("Current Date: ", currentDate);
 
+        let notifications = []; // Move this declaration outside the loop
+
         for (const transaction of transactions) {
             const lending = await Lending.findById(transaction.lending_id);
 
@@ -213,14 +215,13 @@ export const getNotifications = async (req, res) => {
             dueDate.setMonth(dueDate.getMonth() + lending.duration);
 
             const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-            const notifications = [];
             console.log(dueDate > currentDate);
             if (dueDate > currentDate) {
                 notifications.push({
                     type: 'Payment Reminder!',
                     lender_name: lender.name,
                     lender_amount: lending.amount,
-                    message: `Reminder: You have to pay  ₹${lending.amount} to ${lender.name} before ${dueDate.toISOString().split('T')[0]}.`,
+                    message: `Reminder: You have to pay ₹${lending.amount} to ${lender.name} before ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
             }
