@@ -22,7 +22,7 @@ const Register = () => {
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePhoneNumber = (phoneNumber) => /^\d{10}$/.test(phoneNumber);
   const validateAccountNumber = (accountNumber) =>
-    /^\d{9,18}$/.test(accountNumber); 
+    /^\d{9,18}$/.test(accountNumber);
   const validateIfscNumber = (ifscNumber) =>
     /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscNumber);
   const validateUpiId = (upiId) => /^[a-zA-Z0-9]+@[a-zA-Z0-9]+$/.test(upiId);
@@ -124,7 +124,7 @@ const Register = () => {
     if (pin.join("") !== confirmPin.join("")) {
       setError("PINs do not match.");
       setLoading(false);
-      return; 
+      return;
     }
 
     const userData = {
@@ -133,27 +133,26 @@ const Register = () => {
       phoneNumber,
       accountNumber,
       ifscNumber,
-      bankName,
       upiId,
       pin: pin.join(""),
     };
     console.log("Registering user with data:", userData);
     try {
-        const response = await fetch('http://localhost:3000/auth/register', { 
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(userData),
-        });
+      const response = await fetch('http://localhost:3000/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
 
-        if (!response.ok) {
-            throw new Error('Registration failed. Please try again.');
-        }
+      if (!response.ok) {
+        throw new Error('Registration failed. Please try again.');
+      }
 
-        const data = await response.json();
-        console.log("Registration successful!", data);
-        navigate('/main');
+      const data = await response.json();
+      console.log("Registration successful!", data);
+      navigate('/main');
     } catch (err) {
       setError("Registration failed. Please try again.");
     } finally {
@@ -181,9 +180,9 @@ const Register = () => {
           step === 3
             ? handleRegister
             : (e) => {
-                e.preventDefault();
-                handleNext();
-              }
+              e.preventDefault();
+              handleNext();
+            }
         }
       >
         {step === 1 && (
@@ -194,37 +193,37 @@ const Register = () => {
             <Label htmlFor="fullName" className="text-slate-100 text-md font-semibold">
               Full Name:
             </Label>
-            <TextInput type="text" id="fullName" placeholder="Enter your full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required/>
+            <TextInput type="text" id="fullName" placeholder="Enter your full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
 
             <Label htmlFor="email" className="text-slate-100 text-md font-semibold"
             >
               Email:
             </Label>
-            <TextInput type="email" id="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required/>
+            <TextInput type="email" id="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             <Label htmlFor="phoneNumber" className="text-slate-100 text-md font-semibold">
               Phone Number:
             </Label>
-            <TextInput type="tel" id="phoneNumber" placeholder="Enter your phone number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required/>
+            <TextInput type="tel" id="phoneNumber" placeholder="Enter your phone number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
           </>
         )}
 
         {step === 2 && (<>
-            <h2 className="text-xl font-semibold mb-2">Account Details</h2>
-            <Label htmlFor="accountNumber" className="text-slate-100 text-md font-semibold">
-              Account Number:
-            </Label>
-            <TextInput type="text" id="accountNumber" placeholder="Enter your account number" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required/>
+          <h2 className="text-xl font-semibold mb-2">Account Details</h2>
+          <Label htmlFor="accountNumber" className="text-slate-100 text-md font-semibold">
+            Account Number:
+          </Label>
+          <TextInput type="text" id="accountNumber" placeholder="Enter your account number" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required />
 
-            <Label htmlFor="accountNumberConfirm" className="text-slate-100 text-md font-semibold">
-              Re-enter your Account Number:
-            </Label>
-            <TextInput type="password" id="accountNumberConfirm" placeholder="Re-enter your account number" value={accountNumberConfirm} onChange={(e) => setAccountNumberConfirm(e.target.value)} required/>
+          <Label htmlFor="accountNumberConfirm" className="text-slate-100 text-md font-semibold">
+            Re-enter your Account Number:
+          </Label>
+          <TextInput type="password" id="accountNumberConfirm" placeholder="Re-enter your account number" value={accountNumberConfirm} onChange={(e) => setAccountNumberConfirm(e.target.value)} required />
 
-            <Label htmlFor="ifscNumber" className="text-slate-100 text-md font-semibold">
-              IFSC Number:
-            </Label>
-            <TextInput type="text" id="ifscNumber" placeholder="Eg: SBIN0123456" value={ifscNumber} onChange={(e) => setIfscNumber(e.target.value)} required/>
-          </>
+          <Label htmlFor="ifscNumber" className="text-slate-100 text-md font-semibold">
+            IFSC Number:
+          </Label>
+          <TextInput type="text" id="ifscNumber" placeholder="Eg: SBIN0123456" value={ifscNumber} onChange={(e) => setIfscNumber(e.target.value)} required />
+        </>
         )}
 
         {step === 3 && (
@@ -233,7 +232,7 @@ const Register = () => {
             <Label htmlFor="upiId" className="text-slate-100 text-md font-semibold">
               UPI ID:
             </Label>
-            <TextInput type="text" id="upiId" placeholder="Eg: name@bank" value={upiId} onChange={(e) => setUpiId(e.target.value)} required/>
+            <TextInput type="text" id="upiId" placeholder="Eg: name@bank" value={upiId} onChange={(e) => setUpiId(e.target.value)} required />
             <div className="flex flex-col gap-4">
               <Label className="text-slate-100 text-md font-semibold">
                 Enter UPI PIN:
@@ -260,9 +259,9 @@ const Register = () => {
               <div className="flex gap-2">
                 {confirmPin.map((digit, index) => (
                   <TextInput key={index} id={`confirmPin-${index}`} value={digit} type="password" maxLength={1} className="w-10 text-center" onChange={(e) => handlePinChange(
-                        index, e.target.value, setConfirmPin, confirmPin,
-                      )
-                    }
+                    index, e.target.value, setConfirmPin, confirmPin,
+                  )
+                  }
                     onKeyDown={(e) =>
                       e.key === "Backspace" && handlePinDelete(index, setConfirmPin, confirmPin)
                     }
