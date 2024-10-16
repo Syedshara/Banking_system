@@ -270,10 +270,10 @@ export const getNotifications = async (req, res) => {
             if (dueDate > currentDate) {
                 //console.log("1st if");
                 notifications.push({
-                    type: 'payment_reminder',
+                    type: 'Payment Reminder!',
                     lender_name: lender.name,
                     lender_amount: lending.amount,
-                    message: `Reminder: You have a payment of $${lending.amount} to ${lender.name} on ${dueDate.toISOString().split('T')[0]}.`,
+                    message: `Reminder: You have to pay  ₹${lending.amount} to ${lender.name} before ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
             }
