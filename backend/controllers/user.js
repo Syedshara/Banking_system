@@ -196,32 +196,32 @@ export const getNotifications = async (req, res) => {
                 continue; // Skip if no lending found
             }
 
-            // Log createdAt value
-            console.log("Created At (lending): ", lending.createdAt);
+            // Log updatedAt value from transaction
+            console.log("Updated At (transaction): ", transaction.updatedAt);
 
-            // Convert createdAt to a Date object
-            const createdAtDate = new Date(lending.createdAt);
-            console.log("Parsed Created At Date: ", createdAtDate);
+            // Use updatedAt from transaction for due date calculation
+            const updatedAtDate = new Date(transaction.updatedAt);
+            console.log("Parsed Updated At Date: ", updatedAtDate);
 
-            // Check if createdAtDate is valid
-            if (isNaN(createdAtDate.getTime())) {
-                console.error("Invalid createdAt date:", lending.createdAt);
-                continue; // Skip if createdAt is invalid
+            // Check if updatedAtDate is valid
+            if (isNaN(updatedAtDate.getTime())) {
+                console.error("Invalid updatedAt date:", transaction.updatedAt);
+                continue; // Skip if updatedAt is invalid
             }
 
-            // Fetch the borrower and lender's user details
+            // Fetch the lender's user details
             const lender = await User.findById(transaction.lender_id); // Fetch lender details
 
-            // Debug log to check fetched users
+            // Debug log to check fetched lender
             console.log("Fetched Lender: ", lender);
 
             if (!lender) {
-                continue; // Skip if no borrower or lender found
+                continue; // Skip if no lender found
             }
 
-            // Calculate due date based on lending duration
-            const dueDate = new Date(createdAtDate);
-            dueDate.setMonth(dueDate.getMonth() + lending.duration); // Add duration to the created date
+            // Calculate due date based on transaction updatedAt and lending duration
+            const dueDate = new Date(updatedAtDate);
+            dueDate.setMonth(dueDate.getMonth() + lending.duration); // Add duration to the updated date
 
             // Debug log to check due dates
             console.log("Due Date: ", dueDate);
@@ -256,4 +256,3 @@ export const getNotifications = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
