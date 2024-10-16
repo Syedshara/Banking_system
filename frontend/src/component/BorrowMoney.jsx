@@ -5,22 +5,18 @@ const BorrowMoney = () => {
     const [money, setMoney] = useState('');
     const [duration, setDuration] = useState('');
     const [interestRate, setInterestRate] = useState('');
-    const [lenders, setLenders] = useState([]); // State to store lenders list
-    const [isLoading, setIsLoading] = useState(false); // Loading state
+    const [lenders, setLenders] = useState([]); 
+    const [isLoading, setIsLoading] = useState(false); 
 
     const handleRequestSubmit = async (e) => {
         e.preventDefault();
 
-        // Check if money field is not empty
         if (!money) {
             alert('Money field is required.');
             return;
         }
-
-        // Set loading state to true while fetching lenders
         setIsLoading(true);
 
-        // Send request data to backend API
         try {
             const userId = localStorage.getItem("user_id");
             const response = await fetch('http://10.16.58.118:3000/borrow/getlenders', {
@@ -31,13 +27,12 @@ const BorrowMoney = () => {
                 body: JSON.stringify({
                     id: userId,
                     money,
-                    duration: duration || null, // Optional
-                    interest_rate: interestRate || null, // Optional
+                    duration: duration || null, 
+                    interest_rate: interestRate || null,
                 }),
             });
 
             const data = await response.json();
-            // Assuming the response contains a list of lenders
             console.log(data);
             setLenders(data);
 
@@ -45,21 +40,16 @@ const BorrowMoney = () => {
             console.error('Error fetching lenders:', error);
             alert('Failed to fetch lenders. Please try again.');
         } finally {
-            setIsLoading(false); // Set loading state to false after request completes
+            setIsLoading(false); 
         }
     };
 
-    // Handle lender selection
     const handleLenderRequest = async (lender) => {
-        const userId = localStorage.getItem('user_id'); // Retrieve user_id from localStorage
-
-        // Check if the lender has already been requested
+        const userId = localStorage.getItem('user_id'); 
         if (lender.has_requested) {
             alert('You have already requested this lender.');
             return;
         }
-
-        // Send lender and user data to the backend
         try {
             const response = await fetch('http://10.16.58.118:3000/borrow/request', {
                 method: 'POST',
@@ -68,16 +58,16 @@ const BorrowMoney = () => {
                 },
                 body: JSON.stringify({
                     borrower_id: userId,
-                    lending_id: lender.lending_id, // Include lending ID
-                    lender_id: lender.lender_id, // Lender's ID
-                    amount: lender.amount, // Lender's amount
+                    lending_id: lender.lending_id, 
+                    lender_id: lender.lender_id, 
+                    amount: lender.amount, 
+                    interest_rate: interestRate || lender.min_interest
+
                 }),
             });
 
             const result = await response.json();
             console.log('Request sent successfully:', result);
-
-            // Update the lenders state to reflect that this lender has been requested
             setLenders((prevLenders) =>
                 prevLenders.map((l) =>
                     l.lending_id === lender.lending_id ? { ...l, has_requested: true } : l
@@ -94,12 +84,9 @@ const BorrowMoney = () => {
     return (
         <div className="w-full mx-auto mb-14 max-w-5xl px-20 pb-20 pt-5">
             <div className="flex h-full flex-col w-full gap-5">
-                {/* Card Section (1/3) */}
                 <Card className="w-full">
                     <form onSubmit={handleRequestSubmit} className="flex flex-wrap">
-                        {/* Column 1: Money and Duration */}
                         <div className="w-1/2 pr-2">
-                            {/* Money */}
                             <div className="mb-4 mx-4">
                                 <Label htmlFor="money" value="Money" />
                                 <TextInput
@@ -111,8 +98,6 @@ const BorrowMoney = () => {
                                     required
                                 />
                             </div>
-
-                            {/* Duration */}
                             <div className="mb-4 mx-4">
                                 <Label htmlFor="duration" value="Duration (in Months, optional)" />
                                 <TextInput
@@ -124,10 +109,7 @@ const BorrowMoney = () => {
                                 />
                             </div>
                         </div>
-
-                        {/* Column 2: Interest Rate and Button */}
                         <div className="w-1/2 pl-2">
-                            {/* Interest Rate */}
                             <div className="mb-4 mx-4">
                                 <Label htmlFor="interestRate" value="Interest Rate (%) (optional)" />
                                 <TextInput
@@ -151,8 +133,6 @@ const BorrowMoney = () => {
                         </div>
                     </form>
                 </Card>
-
-                {/* Lenders List Section (2/3) */}
                 <div className="w-full h-96 overflow-y-auto mx-2 flex flex-col gap-2">
                     {lenders.length === 0 ? (
                         <p className="text-center mt-5 text-lg">No lenders available.</p>
@@ -170,7 +150,7 @@ const BorrowMoney = () => {
                                         <Button
                                             color="light"
                                             onClick={() => handleLenderRequest(lender)}
-                                            disabled={lender.has_requested} // Disable button if already requested
+                                            disabled={lender.has_requested} 
                                         >
                                             {lender.has_requested ? 'Requested' : 'Request'}
                                         </Button>

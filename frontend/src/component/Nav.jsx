@@ -26,8 +26,8 @@ const Nav = () => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem("user_id"); // Remove user_id from local storage
-        navigate('/'); // Redirect to home page
+        localStorage.removeItem("user_id"); 
+        navigate('/'); 
     };
 
     return (

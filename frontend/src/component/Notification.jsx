@@ -30,10 +30,10 @@ const Notification = () => {
                 {notifications.map((notification) => (
                     <Card key={notification.id} className="w-full p-2 shadow-lg bg-white rounded-lg">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-semibold">{notification.type}</h3>
+                            <h3 className="text-lg font-semibold text-red-500">{notification.type}</h3>
                             <span className="text-xs text-gray-500">{notification.date}</span>
                         </div>
-                        <p className="text-gray-600 text-sm">{notification.message}</p>
+                        <p className="text-gray-600 text-sm  ">{notification.message}</p>
                     </Card>
                 ))}
             </div>

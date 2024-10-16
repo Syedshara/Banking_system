@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button } from 'flowbite-react';
+import { Card, Button, Modal } from 'flowbite-react';
+import bcryptjs from 'bcryptjs'; // Ensure this is installed and available
 
 const Repay = () => {
   const [repayments, setRepayments] = useState([]);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinValues, setPinValues] = useState(Array(6).fill(''));
+  const [selectedRepayment, setSelectedRepayment] = useState(null);
 
   useEffect(() => {
     const fetchRepayDetails = async () => {
       try {
+        // Sample data for UI testing (replace this with actual API response)
         const data = [
           { id: 1, lenderName: 'John Doe', principalAmount: 10000, duration: 12, interestRate: 5 },
           { id: 2, lenderName: 'Jane Smith', principalAmount: 5000, duration: 6, interestRate: 4 },
+          // Add more data here...
         ];
 
         const calculatedRepayments = data.map((repayment) => {
@@ -28,36 +34,122 @@ const Repay = () => {
     fetchRepayDetails();
   }, []);
 
+  const handlePinChange = (index, value) => {
+    const newPinValues = [...pinValues];
+    newPinValues[index] = value;
+    setPinValues(newPinValues);
+    // Automatically focus next input
+    if (value && index < 5) {
+      document.getElementById(`pin-${index + 1}`).focus();
+    }
+  };
+
+  const handlePinKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && index > 0 && !pinValues[index]) {
+      document.getElementById(`pin-${index - 1}`).focus();
+    }
+  };
+
+  const handlePayNow = (repayment) => {
+    setSelectedRepayment(repayment);
+    setShowPinModal(true);
+  };
+
+  const validatePinAndProcess = async () => {
+    const rpin = pinValues.join('');
+    const userPin = "hashed-pin"; // Replace with the actual hashed PIN
+    const isMatch = bcryptjs.compareSync(rpin, userPin);
+
+    if (!isMatch) {
+      alert('Invalid PIN');
+      return;
+    }
+
+    // Call the API to process the repayment
+    const payload = {
+      transaction_id: selectedRepayment.id,
+      action: 'repay',
+      pin: rpin,
+      borrower_id: 'your-borrower-id',
+      lending_id: 'your-lending-id',
+    };
+
+    try {
+      const response = await fetch('http://10.16.58.118:3000/users/lending_status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        alert(`Repayment processed for ${selectedRepayment.lenderName}`);
+        setRepayments(repayments.filter((r) => r.id !== selectedRepayment.id));
+      } else {
+        alert('Failed to process the repayment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error processing repayment:', error);
+      alert('Error processing repayment. Please try again.');
+    }
+
+    setShowPinModal(false);
+    setPinValues(Array(6).fill(''));
+  };
+
   return (
-    <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-4xl">
+    <div className="p-5 w-full mx-auto mt-5 mb-5 px-10 max-w-6xl">
       <h2 className="text-2xl font-bold mb-5">Repayment Details</h2>
 
       {repayments.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
-          {repayments.map((repayment) => (
-            <Card
-              key={repayment.id}
-              className="mb-4"
-              style={{ width: '400px', height: '250px' }} 
-            >
-              <div className="flex justify-between items-center">
-                <h5 className="text-xl font-bold">Lender: {repayment.lenderName}</h5>
-                <span className="text-gray-500">Duration: {repayment.duration} months</span>
-              </div>
-              <div className="mt-1">
-                <p className="text-gray-700">Principal Amount: ₹{repayment.principalAmount}</p>
-                <p className="text-gray-700">Interest Rate: {repayment.interestRate}%</p>
-                <p className="text-gray-700">Interest Amount: ₹{repayment.interestAmount}</p>
-                <p className="text-gray-900 font-semibold mt-2">Total Repay Amount: ₹{repayment.totalRepayAmount}</p>
-              </div>
-              <Button className="mt-4" gradientDuoTone='greenToBlue'>
-                Pay Now
-              </Button>
-            </Card>
-          ))}
+        <div className="h-[700px] px-10 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {repayments.map((repayment) => (
+              <Card key={repayment.id} className="mb-4">
+                <div className="flex flex-col justify-between h-full">
+                  <div>
+                    <h5 className="text-xl font-bold">Lender: {repayment.lenderName}</h5>
+                    <p className="mt-2 text-gray-700">Principal Amount: ₹{repayment.principalAmount}</p>
+                    <p className="text-gray-700">Interest Rate: {repayment.interestRate}%</p>
+                    <p className="text-gray-700">Duration: {repayment.duration} months</p>
+                    <p className="text-gray-700">Due Time: - months</p>
+                    <p className="mt-2 text-gray-900 font-semibold">Total Repay Amount: ₹{repayment.totalRepayAmount}</p>
+                  </div>
+                  <Button className="mt-4" gradientDuoTone='greenToBlue' onClick={() => handlePayNow(repayment)}>
+                    Pay Now
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       ) : (
-        <p>No repayment details found.</p>
+        <div className="flex justify-center items-center h-48">
+          <p className="text-xl font-semibold text-gray-700">No repayment details found.</p>
+        </div>
+      )}
+
+      {/* Modal for PIN input */}
+      {showPinModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white p-5 rounded-lg shadow-lg w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4">Enter Your PIN</h3>
+            <div className="flex space-x-2">
+              {Array(6).fill().map((_, i) => (
+                <input
+                  key={i}
+                  type="password"
+                  id={`pin-${i}`}
+                  className="w-10 p-2 border rounded-lg ml-7 text-center"
+                  maxLength={1}
+                  value={pinValues[i]}
+                  onChange={(e) => handlePinChange(i, e.target.value)}
+                  onKeyDown={(e) => handlePinKeyDown(i, e)}
+                />
+              ))}
+            </div>
+            <Button onClick={validatePinAndProcess} className="mt-4 w-full" gradientDuoTone='greenToBlue'>Submit</Button>
+          </div>
+        </div>
       )}
     </div>
   );

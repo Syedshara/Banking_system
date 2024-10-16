@@ -45,7 +45,8 @@ export const getLendingRequests = async (req, res) => {
                     borrower_id: transaction.borrower_id,
                     borrower_name: borrower.name,
                     amount: lending.amount,
-                    interest_rate: (lending.min_interest + lending.max_interest) / 2,
+                    lending_id: transaction.lending_id,
+                    interest_rate: transaction.interest_rate,
                     duration: lending.duration,
                 };
             })
@@ -60,7 +61,11 @@ export const getLendingRequests = async (req, res) => {
 
 export const actionOnLendingStatus = async (req, res) => {
     try {
-        const { transaction_id, action } = req.body;
+        const { transaction_id,
+            action,
+            pin,
+            borrower_id,
+            lending_id, } = req.body;
 
         const transaction = await Transaction.findById(transaction_id);
         console.log(transaction);
@@ -98,10 +103,28 @@ export const actionOnLendingStatus = async (req, res) => {
             await transaction.save();
 
             res.status(200).json({ message: 'Transaction accepted, conflicts removed, and lender’s balance updated.' });
+            const lendingResult = await Lending.updateOne(
+                { _id: lending_id }, // Find the lending record with this lending_id
+                { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+            );
+
+            // Check if the lending request was found and updated
+            if (lendingResult.nModified === 0) {
+                return res.status(404).json({ message: 'Borrower not found in lending requests' });
+            }
 
         } else if (action === "rejected") {
             await Transaction.findByIdAndDelete(transaction_id);
             res.status(200).json({ message: 'Transaction rejected and removed.' });
+            const lendingResult = await Lending.updateOne(
+                { _id: lending_id }, // Find the lending record with this lending_id
+                { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+            );
+
+            // Check if the lending request was found and updated
+            if (lendingResult.nModified === 0) {
+                return res.status(404).json({ message: 'Borrower not found in lending requests' });
+            }
         } else {
             res.status(400).json({ message: 'Invalid action.' });
         }
@@ -192,10 +215,10 @@ export const getNotifications = async (req, res) => {
             console.log(dueDate > currentDate);
             if (dueDate > currentDate) {
                 notifications.push({
-                    type: 'payment_reminder',
+                    type: 'Payment Reminder!',
                     lender_name: lender.name,
                     lender_amount: lending.amount,
-                    message: `Reminder: You have an immediate payment of ₹${lending.amount} to ${lender.name} on ${dueDate.toISOString().split('T')[0]}.`,
+                    message: `Reminder: You have to pay  ₹${lending.amount} to ${lender.name} before ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
             }
@@ -216,6 +239,115 @@ export const getNotifications = async (req, res) => {
         res.status(200).json(notifications);
     } catch (error) {
         console.error("Error fetching notifications:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const getRepay = async (req, res) => {
+    try {
+        const { id } = req.params;  // Borrower ID
+
+        // Fetch all transactions related to this borrower
+        const transactions = await Transaction.find({ borrower_id: id, transaction_status: "pending" });
+        if (!transactions || transactions.length === 0) {
+            return res.status(404).json({ message: "No transactions found for this borrower." });
+        }
+
+        // Fetch all pending lendings related to this borrower
+
+
+        // Create an array to hold repay details
+        const repayDetails = [];
+
+        for (const transaction of transactions) {
+            // Fetch lender details using lender_id from the transaction
+            const lender = await User.findById(transaction.lender_id); // Assuming you have a User model for lenders
+            if (!lender) {
+                return res.status(404).json({ message: "Lender not found." });
+            }
+
+            // Helper function to add months to a Date object
+            const addMonths = (date, months) => {
+                const newDate = new Date(date);
+                newDate.setMonth(newDate.getMonth() + months);
+                return newDate;
+            };
+
+            // Calculate dueDate by adding the lender's duration (in months) to the transaction's createdAt date
+            const createdDate = new Date(transaction.createdAt);
+            const dueDate = addMonths(createdDate, lender.duration);  // Assuming duration is in months
+
+            // Calculate remaining time until due date
+            const currentDate = new Date();  // Current date
+            const remainingTime = dueDate.getTime() - currentDate.getTime();  // Difference in milliseconds
+
+            // Convert remainingTime to days
+            const remainingDays = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
+
+            // Construct response data for each transaction
+            repayDetails.push({
+                id: transaction.transaction_id,
+                lenderName: lender.name,
+                principalAmount: transaction.amount,
+                interestRate: transaction.interest_rate,
+                dueDate: dueDate.toISOString().split('T')[0], // Format dueDate as YYYY-MM-DD
+                remainingDays: remainingDays > 0 ? remainingDays : 0,
+                // Ensure non-negative remaining days
+
+            });
+        }
+
+        // Step 3: Send the repay details as a response
+        res.status(200).json(repayDetails);
+    } catch (error) {
+        console.error("Error fetching repay details:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const updatePay = async (req, res) => {
+    try {
+        const { id, amount } = req.body; // Transaction ID and the payment amount
+
+        // Fetch the transaction using the transaction ID
+        const transaction = await Transaction.findById(id);
+        if (!transaction) {
+            return res.status(404).json({ message: "Transaction not found." });
+        }
+
+        // Fetch the lender and borrower using their IDs
+        const lender = await User.findById(transaction.lender_id);
+        const borrower = await User.findById(transaction.borrower_id);
+        if (!lender || !borrower) {
+            return res.status(404).json({ message: "Lender or borrower not found." });
+        }
+
+        // Check if the borrower has enough balance to make the payment
+        if (borrower.balance < amount) {
+            return res.status(400).json({ message: "Insufficient balance for this transaction." });
+        }
+
+        // Update the lender's balance
+        lender.balance += amount; // Assuming there's a balance field in the User model
+        await lender.save();
+
+        // Update the borrower's balance
+        if (borrower.balance - amount < 0) {
+            return res.status(400).json({ message: "Insufficient balance for this transaction." });
+        }
+        borrower.balance -= amount; // Assuming there's a balance field in the User model
+        await borrower.save();
+
+        // Update the transaction status to 'paid'
+        transaction.transaction_status = "paid";
+        await transaction.save();
+
+        // Send a success response
+        res.status(200).json({ message: "Payment successful.", transaction });
+    } catch (error) {
+        console.error("Error updating payment:", error);
         res.status(500).json({ error: error.message });
     }
 };
