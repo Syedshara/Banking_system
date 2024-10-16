@@ -51,7 +51,8 @@ export const getLendingRequests = async (req, res) => {
                     borrower_id: transaction.borrower_id,
                     borrower_name: borrower.name,
                     amount: lending.amount,
-                    interest_rate: (lending.min_interest + lending.max_interest) / 2,
+                    lending_id: transaction.lending_id,
+                    interest_rate: transaction.interest_rate,
                     duration: lending.duration,
                 };
             })
@@ -68,7 +69,11 @@ export const getLendingRequests = async (req, res) => {
 
 export const actionOnLendingStatus = async (req, res) => {
     try {
-        const { transaction_id, action } = req.body;
+        const { transaction_id,
+            action,
+            pin,
+            borrower_id,
+            lending_id, } = req.body;
 
         // Find the transaction using the provided transaction_id
         const transaction = await Transaction.findById(transaction_id);
@@ -115,11 +120,29 @@ export const actionOnLendingStatus = async (req, res) => {
             await transaction.save();
 
             res.status(200).json({ message: 'Transaction accepted, conflicts removed, and lender’s balance updated.' });
+            const lendingResult = await Lending.updateOne(
+                { _id: lending_id }, // Find the lending record with this lending_id
+                { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+            );
+
+            // Check if the lending request was found and updated
+            if (lendingResult.nModified === 0) {
+                return res.status(404).json({ message: 'Borrower not found in lending requests' });
+            }
 
         } else if (action === "rejected") {
             // Step 6: Remove the rejected transaction
             await Transaction.findByIdAndDelete(transaction_id);
             res.status(200).json({ message: 'Transaction rejected and removed.' });
+            const lendingResult = await Lending.updateOne(
+                { _id: lending_id }, // Find the lending record with this lending_id
+                { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+            );
+
+            // Check if the lending request was found and updated
+            if (lendingResult.nModified === 0) {
+                return res.status(404).json({ message: 'Borrower not found in lending requests' });
+            }
         } else {
             res.status(400).json({ message: 'Invalid action.' });
         }

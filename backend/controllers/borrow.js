@@ -52,6 +52,7 @@ export const getLenders = async (req, res) => {
                     lender_id: lender.user_id,
                     amount: lender.amount,
                     interest_range: `${lender.min_interest}-${lender.max_interest}%`,
+                    min_interest: lender.min_interest,
                     duration: lender.duration,
                     user_name: user ? user.name : 'Balan',
                     has_requested: hasRequested // Indicate if the borrower has already requested this lender
@@ -66,7 +67,7 @@ export const getLenders = async (req, res) => {
 };
 export const addRequest = async (req, res) => {
     try {
-        const { borrower_id, lending_id, lender_id, amount } = req.body;
+        const { borrower_id, lending_id, lender_id, amount, interest_rate } = req.body;
 
         // Create a new transaction
         const transaction = new Transaction({
@@ -74,7 +75,9 @@ export const addRequest = async (req, res) => {
             lender_id,
             borrower_id,
             amount,
+            interest_rate,
             transaction_status: "requested"
+
         });
 
         // Save the transaction
@@ -132,7 +135,9 @@ export const getRequestedTransactions = async (req, res) => {
                         lending_id: transaction.lending_id,
                         // Get the lender's name
                         amount: lending.amount,   // Get the requested amount
-                        interestRate: lending.max_interest // Get the interest rate (or min_interest if required)
+                        interestRate: transaction.interest_rate,
+                        duration: lending.duration
+                        // Get the interest rate (or min_interest if required)
                     });
                 }
             }

@@ -51,6 +51,8 @@ const Main = () => {
                     name: item.borrower_name,
                     amount: item.amount,
                     interestRate: item.interest_rate,
+                    lending_id: item.lending_id,
+                    borrower_id: item.borrower_id,
                     duration: item.duration, // assuming duration is part of the response
                 }));
                 setBorrowers(formattedBorrowers);
@@ -75,13 +77,16 @@ const Main = () => {
                 const response = await fetch(`http://10.16.58.118:3000/borrow/requested_transactions/${userId}`); // Pass user_id to the API endpoint
                 const data = await response.json();
 
+
                 const formattedLenders = data.map((transaction) => ({
                     id: transaction.transactionId, // Use transaction ID as the identifier
                     lenderName: transaction.lenderName,
                     lenderID: transaction.lenderID,
                     lendingId: transaction.lending_id, // Lender's lending ID
                     amount: transaction.amount, // Requested amount
-                    interestRate: transaction.interestRate, // Max interest rate
+                    interestRate: transaction.interestRate,
+                    duration: transaction.duration, // Duration of the loan
+                    // Max interest rate
                 }));
                 setLenders(formattedLenders);
             } catch (error) {
@@ -94,16 +99,25 @@ const Main = () => {
 
     // Handle accept or decline request function
     const handleAcceptRequest = async (request, actionType) => {
+
         const pin = await promptForPin();
         if (!pin) {
             showMessageCard('PIN entry cancelled.');
             return;
         }
 
+
+
+
+
+        console.log(request);
         const payload = {
             transaction_id: request.id,
             action: actionType,
             pin: pin,
+            borrower_id: request.borrower_id,
+            lending_id: request.lending_id,
+
         };
 
         try {
@@ -118,6 +132,7 @@ const Main = () => {
             const result = await response.json();
             if (response.ok) {
                 showMessageCard(`Request ${actionType}ed for ${request.name}`);
+                setBorrowers((prevLenders) => prevLenders.filter((item) => item.id !== request.id));
                 alert(`Request ${actionType}ed for ${request.lenderName || request.name}`);
             } else {
                 console.error('Error processing request:', result);
@@ -343,24 +358,30 @@ const Main = () => {
                         <p>No lender requests available.</p>
                     ) : (
                         lenders.map((lender) => (
-                            <Card key={lender.id} className="p-4 shadow-lg pt-10 h-80">
+                            <Card key={lender.id} className="p-4 shadow-lg pt-5 h-80">
                                 {/* Lender Name */}
-                                <div className="mb-3">
+                                <div className="flex items-center gap-3 mb-3">
                                     <p className="text-lg font-semibold">Lender Name:</p>
                                     <p className="text-md">{lender.lenderName}</p>
                                 </div>
 
                                 {/* Amount */}
-                                <div className="mb-3">
+                                <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Amount:</p>
                                     <p className="text-md">₹{lender.amount}</p>
                                 </div>
 
                                 {/* Interest Rate */}
-                                <div className="">
+                                <div className="flex items-center gap-6 mb-3">
                                     <p className="text-lg font-semibold">Interest Rate:</p>
                                     <p className="text-md">{lender.interestRate}%</p>
                                 </div>
+
+                                <div className="flex items-center gap-3 mb-3">
+                                    <p className="text-lg font-semibold">Duration :</p>
+                                    <p className="text-md">{lender.duration} months</p>
+                                </div>
+
 
                                 {/* Withdraw Button */}
                                 <Button color="red" onClick={() => handleWithdraw(lender)}>

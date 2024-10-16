@@ -70,7 +70,9 @@ const BorrowMoney = () => {
                     borrower_id: userId,
                     lending_id: lender.lending_id, // Include lending ID
                     lender_id: lender.lender_id, // Lender's ID
-                    amount: lender.amount, // Lender's amount
+                    amount: lender.amount, // Lender's amount,
+                    interest_rate: interestRate || lender.min_interest
+
                 }),
             });
 
