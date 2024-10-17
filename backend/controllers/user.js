@@ -184,12 +184,11 @@ export const getNotifications = async (req, res) => {
     try {
         const userId = req.params.id;
 
-        const transactions = await Transaction.find({ borrower_id: userId });
+        const transactions = await Transaction.find({ borrower_id: userId, transaction_status: "pending" });
+        const lenderTransactions = await Transaction.find({ lender_id: userId, transaction_status: "pending" });
 
         const currentDate = new Date();
-        console.log("Current Date: ", currentDate);
-
-        let notifications = []; // Move this declaration outside the loop
+        let notifications = [];
 
         for (const transaction of transactions) {
             const lending = await Lending.findById(transaction.lending_id);
@@ -214,14 +213,20 @@ export const getNotifications = async (req, res) => {
             const dueDate = new Date(updatedAtDate);
             dueDate.setMonth(dueDate.getMonth() + lending.duration);
 
-            const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-            console.log(dueDate > currentDate);
+            // Calculate simple interest
+            const principal = lending.amount;
+            const rate = transaction.interest_rate; // Percentage
+            const duration = lending.duration / 12; // Convert months to years
+            const interest = (principal * rate * duration) / 100;
+            const totalAmount = principal + interest;
+
             if (dueDate > currentDate) {
                 notifications.push({
                     type: 'Payment Reminder!',
                     lender_name: lender.name,
-                    lender_amount: lending.amount,
-                    message: `Reminder: You have to pay ₹${lending.amount} to ${lender.name} before ${dueDate.toISOString().split('T')[0]}.`,
+                    lender_amount: totalAmount,
+                    interestRate: transaction.interest_rate,
+                    message: `Reminder: You have to pay ₹${totalAmount.toFixed(2)} to ${lender.name}  before ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
             }
@@ -230,8 +235,62 @@ export const getNotifications = async (req, res) => {
                 notifications.push({
                     type: 'overdue_alert',
                     lender_name: lender.name,
-                    lender_amount: lending.amount,
-                    message: `Alert: You have an overdue payment of ₹${lending.amount} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
+                    lender_amount: totalAmount,
+                    interestRate: transaction.interest_rate,
+                    message: `Alert: You have an overdue payment of ₹${totalAmount.toFixed(2)}  to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
+                    date: currentDate.toISOString().split('T')[0],
+                });
+            }
+        }
+
+        for (const transaction of lenderTransactions) {
+            const lending = await Lending.findById(transaction.lending_id);
+
+            if (!lending) {
+                continue;
+            }
+
+            const updatedAtDate = new Date(transaction.updatedAt);
+
+            if (isNaN(updatedAtDate.getTime())) {
+                console.error("Invalid updatedAt date:", transaction.updatedAt);
+                continue;
+            }
+
+            const borrower = await User.findById(transaction.borrower_id);
+
+            if (!borrower) {
+                continue;
+            }
+
+            const dueDate = new Date(updatedAtDate);
+            dueDate.setMonth(dueDate.getMonth() + lending.duration);
+
+            // Calculate simple interest
+            const principal = lending.amount;
+            const rate = transaction.interest_rate; // Percentage
+            const duration = lending.duration / 12; // Convert months to years
+            const interest = (principal * rate * duration) / 100;
+            const totalAmount = principal + interest;
+
+            if (dueDate > currentDate) {
+                notifications.push({
+                    type: 'Amount to be received',
+                    borrower_name: borrower.name,
+                    borrower_amount: totalAmount,
+                    interestRate: transaction.interest_rate,
+                    message: `Reminder: ${borrower.name} has to pay you ₹${totalAmount.toFixed(2)} before ${dueDate.toISOString().split('T')[0]}.`,
+                    date: currentDate.toISOString().split('T')[0],
+                });
+            }
+
+            if (dueDate < currentDate) {
+                notifications.push({
+                    type: 'overdue_alert',
+                    borrower_name: borrower.name,
+                    borrower_amount: totalAmount,
+                    interestRate: transaction.interest_rate,
+                    message: `Alert: ${borrower.name} has an overdue payment of ₹${totalAmount.toFixed(2)}  to you since ${dueDate.toISOString().split('T')[0]}.`,
                     date: currentDate.toISOString().split('T')[0],
                 });
             }
@@ -245,7 +304,6 @@ export const getNotifications = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
 
 export const getRepay = async (req, res) => {
     try {
