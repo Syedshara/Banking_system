@@ -4,18 +4,18 @@ import { Card, Dropdown } from 'flowbite-react';
 const Notification = () => {
     const [notifications, setNotifications] = useState([]);
     const [filteredNotifications, setFilteredNotifications] = useState([]);
-    const [filter, setFilter] = useState('All'); 
+    const [filter, setFilter] = useState('All');
 
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
                 const userId = localStorage.getItem('user_id');
-                const response = await fetch(`http://10.16.58.118:3000/users/notification/${userId}`);
+                const response = await fetch(`http://localhost:3000/users/notification/${userId}`);
                 const data = await response.json();
 
                 console.log({ data });
                 setNotifications(data);
-                setFilteredNotifications(data); 
+                setFilteredNotifications(data);
             } catch (error) {
                 console.error('Error fetching notifications:', error);
             }

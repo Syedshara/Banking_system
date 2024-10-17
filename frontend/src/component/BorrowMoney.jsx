@@ -5,8 +5,8 @@ const BorrowMoney = () => {
     const [money, setMoney] = useState('');
     const [duration, setDuration] = useState('');
     const [interestRate, setInterestRate] = useState('');
-    const [lenders, setLenders] = useState([]); 
-    const [isLoading, setIsLoading] = useState(false); 
+    const [lenders, setLenders] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleRequestSubmit = async (e) => {
         e.preventDefault();
@@ -19,7 +19,7 @@ const BorrowMoney = () => {
 
         try {
             const userId = localStorage.getItem("user_id");
-            const response = await fetch('http://10.16.58.118:3000/borrow/getlenders', {
+            const response = await fetch('http://localhost:3000/borrow/getlenders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -27,7 +27,7 @@ const BorrowMoney = () => {
                 body: JSON.stringify({
                     id: userId,
                     money,
-                    duration: duration || null, 
+                    duration: duration || null,
                     interest_rate: interestRate || null,
                 }),
             });
@@ -40,27 +40,27 @@ const BorrowMoney = () => {
             console.error('Error fetching lenders:', error);
             alert('Failed to fetch lenders. Please try again.');
         } finally {
-            setIsLoading(false); 
+            setIsLoading(false);
         }
     };
 
     const handleLenderRequest = async (lender) => {
-        const userId = localStorage.getItem('user_id'); 
+        const userId = localStorage.getItem('user_id');
         if (lender.has_requested) {
             alert('You have already requested this lender.');
             return;
         }
         try {
-            const response = await fetch('http://10.16.58.118:3000/borrow/request', {
+            const response = await fetch('http://localhost:3000/borrow/request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     borrower_id: userId,
-                    lending_id: lender.lending_id, 
-                    lender_id: lender.lender_id, 
-                    amount: lender.amount, 
+                    lending_id: lender.lending_id,
+                    lender_id: lender.lender_id,
+                    amount: lender.amount,
                     interest_rate: interestRate || lender.min_interest
 
                 }),
@@ -150,7 +150,7 @@ const BorrowMoney = () => {
                                         <Button
                                             color="light"
                                             onClick={() => handleLenderRequest(lender)}
-                                            disabled={lender.has_requested} 
+                                            disabled={lender.has_requested}
                                         >
                                             {lender.has_requested ? 'Requested' : 'Request'}
                                         </Button>

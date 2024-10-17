@@ -12,7 +12,7 @@ const Nav = () => {
     useEffect(() => {
         const userId = localStorage.getItem("user_id");
         if (userId) {
-            fetch(`http://10.16.58.118:3000/users/${userId}`)
+            fetch(`http://localhost:3000/users/${userId}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);

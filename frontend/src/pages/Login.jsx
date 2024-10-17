@@ -6,12 +6,12 @@ import img from '../assets/Login/img.jpg';
 const Login = () => {
     const [upiId, setUpiId] = useState("");
     const [pin, setPin] = useState(Array(6).fill(""));
-    const [errorMessage, setErrorMessage] = useState(""); 
+    const [errorMessage, setErrorMessage] = useState("");
     const [loading, setLoading] = useState(false);
-    const [isVisible, setIsVisible] = useState(false); 
-    const navigate = useNavigate(); 
+    const [isVisible, setIsVisible] = useState(false);
+    const navigate = useNavigate();
     const validateUpiId = (upiId) => /^[a-zA-Z0-9]+@[a-zA-Z0-9]+$/.test(upiId);
-    const validatePin = (pin) => pin.join("").length === 6; 
+    const validatePin = (pin) => pin.join("").length === 6;
     const handleLogin = async (e) => {
         e.preventDefault();
         setErrorMessage("");
@@ -33,7 +33,7 @@ const Login = () => {
         }
 
         try {
-            const response = await fetch("http://10.16.58.118:3000/auth/login", {
+            const response = await fetch("http://localhost:3000/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -64,18 +64,18 @@ const Login = () => {
         setIsVisible(true);
         const userId = localStorage.getItem('user_id');
         if (userId) {
-            navigate('/main'); 
+            navigate('/main');
         }
     }, [navigate]);
 
     const handleBack = () => {
-        navigate('/'); 
+        navigate('/');
     };
 
     const handlePinChange = (index, value) => {
         const newPin = [...pin];
         if (value.length <= 1) {
-            newPin[index] = value; 
+            newPin[index] = value;
             setPin(newPin);
 
             if (value && index < 5) {
@@ -87,7 +87,7 @@ const Login = () => {
     const handlePinKeyDown = (index, e) => {
         const newPin = [...pin];
         if (e.key === "Backspace" && index > 0 && !newPin[index]) {
-            newPin[index - 1] = ""; 
+            newPin[index - 1] = "";
             setPin(newPin);
             document.getElementById(`pin-${index - 1}`).focus();
         }

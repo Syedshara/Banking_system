@@ -227,7 +227,7 @@ export const getNotifications = async (req, res) => {
                     lender_amount: totalAmount,
                     interestRate: transaction.interest_rate,
                     message: `Reminder: You have to pay ₹${totalAmount.toFixed(2)} to ${lender.name}  before ${dueDate.toISOString().split('T')[0]}.`,
-                    date: currentDate.toISOString().split('T')[0],
+                    date: updatedAtDate.toISOString().split('T')[0],
                 });
             }
 
@@ -238,7 +238,7 @@ export const getNotifications = async (req, res) => {
                     lender_amount: totalAmount,
                     interestRate: transaction.interest_rate,
                     message: `Alert: You have an overdue payment of ₹${totalAmount.toFixed(2)}  to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
-                    date: currentDate.toISOString().split('T')[0],
+                    date: updatedAtDate.toISOString().split('T')[0],
                 });
             }
         }
@@ -280,7 +280,7 @@ export const getNotifications = async (req, res) => {
                     borrower_amount: totalAmount,
                     interestRate: transaction.interest_rate,
                     message: `Reminder: ${borrower.name} has to pay you ₹${totalAmount.toFixed(2)} before ${dueDate.toISOString().split('T')[0]}.`,
-                    date: currentDate.toISOString().split('T')[0],
+                    date: updatedAtDate.toISOString().split('T')[0],
                 });
             }
 
@@ -291,7 +291,7 @@ export const getNotifications = async (req, res) => {
                     borrower_amount: totalAmount,
                     interestRate: transaction.interest_rate,
                     message: `Alert: ${borrower.name} has an overdue payment of ₹${totalAmount.toFixed(2)}  to you since ${dueDate.toISOString().split('T')[0]}.`,
-                    date: currentDate.toISOString().split('T')[0],
+                    date: updatedAtDate.toISOString().split('T')[0],
                 });
             }
         }

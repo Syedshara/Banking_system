@@ -7,7 +7,7 @@ const Main = () => {
     useEffect(() => {
         const userId = localStorage.getItem("user_id");
         if (userId) {
-            fetch(`http://10.16.58.118:3000/users/${userId}`)
+            fetch(`http://localhost:3000/users/${userId}`)
                 .then(response => response.json())
                 .then(data => {
                     setPin(data.bank_details.pin);
@@ -28,18 +28,18 @@ const Main = () => {
     const [activeTab, setActiveTab] = useState('borrowers');
     useEffect(() => {
         const fetchBorrowers = async () => {
-            const userId = localStorage.getItem('user_id'); 
+            const userId = localStorage.getItem('user_id');
             if (!userId) {
                 console.error('User ID not found in local storage.');
                 return;
             }
 
             try {
-                const response = await fetch(`http://10.16.58.118:3000/users/lending_requests/${userId}`); 
+                const response = await fetch(`http://localhost:3000/users/lending_requests/${userId}`);
                 const data = await response.json();
 
                 const formattedBorrowers = data.map((item) => ({
-                    id: item.transaction_id, 
+                    id: item.transaction_id,
                     name: item.borrower_name,
                     amount: item.amount,
                     interestRate: item.interest_rate,
@@ -54,7 +54,7 @@ const Main = () => {
         };
 
         fetchBorrowers();
-    }, []); 
+    }, []);
     useEffect(() => {
         const fetchLenders = async () => {
             const userId = localStorage.getItem('user_id');
@@ -64,18 +64,18 @@ const Main = () => {
             }
 
             try {
-                const response = await fetch(`http://10.16.58.118:3000/borrow/requested_transactions/${userId}`); 
+                const response = await fetch(`http://localhost:3000/borrow/requested_transactions/${userId}`);
                 const data = await response.json();
 
 
                 const formattedLenders = data.map((transaction) => ({
-                    id: transaction.transactionId, 
+                    id: transaction.transactionId,
                     lenderName: transaction.lenderName,
                     lenderID: transaction.lenderID,
-                    lendingId: transaction.lending_id, 
-                    amount: transaction.amount, 
+                    lendingId: transaction.lending_id,
+                    amount: transaction.amount,
                     interestRate: transaction.interestRate,
-                    duration: transaction.duration, 
+                    duration: transaction.duration,
                 }));
                 setLenders(formattedLenders);
             } catch (error) {
@@ -84,7 +84,7 @@ const Main = () => {
         };
 
         fetchLenders();
-    }, []); 
+    }, []);
     const handleAcceptRequest = async (request, actionType) => {
 
         const pin = await promptForPin();
@@ -108,7 +108,7 @@ const Main = () => {
         };
 
         try {
-            const response = await fetch('http://10.16.58.118:3000/users/lending_status', { // Replace with actual backend URL
+            const response = await fetch('http://localhost:3000/users/lending_status', { // Replace with actual backend URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ const Main = () => {
         console.log(lender);
 
         try {
-            const response = await fetch(`http://10.16.58.118:3000/borrow/withdraw`, {
+            const response = await fetch(`http://localhost:3000/borrow/withdraw`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ const Main = () => {
                 console.log(data.message);
                 setLenders((prevLenders) => prevLenders.filter((item) => item.id !== lender.id));
             } else {
-                console.error(data.message); 
+                console.error(data.message);
             }
         } catch (error) {
             console.error('Error:', error);
@@ -240,9 +240,9 @@ const Main = () => {
                 const isMatch = bcryptjs.compareSync(rpin, user_pin);
                 if (!isMatch) {
                     showMessageCard("Invalid PIN");
-                    resolve(null); 
+                    resolve(null);
                 } else {
-                    resolve(rpin); 
+                    resolve(rpin);
                 }
             });
 
@@ -269,7 +269,7 @@ const Main = () => {
         messageCard.style.backgroundColor = 'white';
         messageCard.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
         messageCard.style.zIndex = '1000';
-        messageCard.style.borderRadius = '10px'; 
+        messageCard.style.borderRadius = '10px';
         messageCard.innerText = message;
 
         document.body.appendChild(overlay);

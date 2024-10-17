@@ -12,7 +12,7 @@ const Repay = () => {
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     if (userId) {
-      fetch(`http://10.16.58.118:3000/users/${userId}`)
+      fetch(`http://localhost:3000/users/${userId}`)
         .then(response => response.json())
         .then(data => {
           console.log(data);
@@ -31,7 +31,7 @@ const Repay = () => {
       try {
         const userId = localStorage.getItem("user_id");
         // Fetch data from your backend API
-        const response = await fetch(`http://10.16.58.118:3000/users/getRepay/${userId}`);
+        const response = await fetch(`http://localhost:3000/users/getRepay/${userId}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -94,7 +94,7 @@ const Repay = () => {
     };
 
     try {
-      const response = await fetch('http://10.16.58.118:3000/users/updatePay', {
+      const response = await fetch('http://localhost:3000/users/updatePay', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
