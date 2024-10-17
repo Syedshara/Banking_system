@@ -24,8 +24,8 @@ const SideBar = () => {
     }, [location.search]);
 
     const handleLogout = () => {
-        localStorage.removeItem('user_id'); 
-        navigate('/'); 
+        localStorage.removeItem('user_id');
+        navigate('/');
     };
 
     return (
@@ -41,15 +41,13 @@ const SideBar = () => {
                     <Sidebar.Item icon={RiMoneyRupeeCircleFill} className='cursor-pointer' active={tag === 'repay'} onClick={() => handleNavigation('repay')}>
                         Repay Money
                     </Sidebar.Item>
-                    <Sidebar.Item icon={GrTransaction} className='cursor-pointer' onClick={() => handleNavigation('transactions')}>
+                    <Sidebar.Item icon={GrTransaction} active={tag === 'transactions' || !tag} className='cursor-pointer' onClick={() => handleNavigation('transactions')}>
                         View Transactions
                     </Sidebar.Item>
-                    <Sidebar.Item icon={MdAccountBalanceWallet} className='cursor-pointer' onClick={() => handleNavigation('balance')}>
+                    <Sidebar.Item icon={MdAccountBalanceWallet} active={tag === 'balance' || !tag} className='cursor-pointer' onClick={() => handleNavigation('balance')}>
                         View Balance
                     </Sidebar.Item>
-                    <Sidebar.Item icon={MdNotificationsActive} className='cursor-pointer' onClick={() => handleNavigation('notification')}>
-                        Notifications
-                    </Sidebar.Item>
+
                     <Sidebar.Item icon={HiLogout} onClick={handleLogout} className='cursor-pointer'>
                         Logout
                     </Sidebar.Item>

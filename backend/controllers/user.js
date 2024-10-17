@@ -296,7 +296,7 @@ export const getNotifications = async (req, res) => {
             }
         }
 
-        console.log("Notifications: ", notifications);
+
 
         res.status(200).json(notifications);
     } catch (error) {
