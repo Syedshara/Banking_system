@@ -1,0 +1,3 @@
+2024-10-17T09:19:09.482Z [ERROR]: Error processing transaction: Transaction numbers are only allowed on a replica set member or mongos
+2024-10-17T09:21:30.926Z [ERROR]: Transaction not found: 6710d68d284d2cdc0d0243c3
+2024-10-17T09:23:13.559Z [ERROR]: Transaction not found: 6710d782284d2cdc0d02443d

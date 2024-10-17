@@ -108,7 +108,7 @@ const Main = () => {
         };
 
         try {
-            const response = await fetch('http://10.16.58.118:3000/users/lending_status', { // Replace with actual backend URL
+            const response = await fetch('http://localhost:3000/users/lending_status', { // Replace with actual backend URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

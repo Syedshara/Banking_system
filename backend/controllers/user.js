@@ -2,6 +2,7 @@ import User from '../models/user.js';
 import bcryptjs from "bcryptjs";
 import Transaction from '../models/transaction.js';
 import Lending from '../models/lending.js';
+import logger from './logger.js';
 
 export const getuser = async (req, res, next) => {
     const userId = req.params.id;
@@ -60,78 +61,92 @@ export const getLendingRequests = async (req, res) => {
 };
 
 export const actionOnLendingStatus = async (req, res) => {
-    try {
-        const { transaction_id,
-            action,
-            pin,
-            borrower_id,
-            lending_id, } = req.body;
+    const session = await Transaction.startSession(); // Start session for 2PC
+    session.startTransaction();
 
-        const transaction = await Transaction.findById(transaction_id);
-        console.log(transaction);
+    try {
+        const { transaction_id, action, lending_id, borrower_id } = req.body;
+
+        const transaction = await Transaction.findById(transaction_id).session(session);
         if (!transaction) {
+            logger.error(`Transaction not found: ${transaction_id}`);
             return res.status(404).json({ message: 'Transaction not found' });
         }
 
         if (action === "accepted") {
-            await Transaction.deleteMany({
-                borrower_id: transaction.borrower_id,
-                amount: transaction.amount,
-                _id: { $ne: transaction_id },
-            });
+            await Transaction.deleteMany(
+                { borrower_id: transaction.borrower_id, amount: transaction.amount, _id: { $ne: transaction_id } },
+                { session }
+            );
 
-            const lender = await User.findById(transaction.lender_id);
+            const lender = await User.findById(transaction.lender_id).session(session);
             if (!lender) {
+                logger.error(`Lender not found: ${transaction.lender_id}`);
                 return res.status(404).json({ message: 'Lender not found' });
             }
-            const borrower = await User.findById(transaction.borrower_id);
+
+            const borrower = await User.findById(transaction.borrower_id).session(session);
             if (!borrower) {
+                logger.error(`Borrower not found: ${transaction.borrower_id}`);
                 return res.status(404).json({ message: 'Borrower not found' });
             }
 
             if (lender.bank_details.balance < transaction.amount) {
+                logger.error(`Insufficient balance for lender ID: ${lender._id}`);
                 return res.status(400).json({ message: 'Insufficient balance.' });
             }
 
             lender.bank_details.balance -= transaction.amount;
-            await lender.save();
+            await lender.save({ session });
 
             borrower.bank_details.balance += transaction.amount;
-            await borrower.save();
+            await borrower.save({ session });
 
             transaction.transaction_status = "pending";
-            await transaction.save();
+            await transaction.save({ session });
 
-            res.status(200).json({ message: 'Transaction accepted, conflicts removed, and lender’s balance updated.' });
             const lendingResult = await Lending.updateOne(
-                { _id: lending_id }, // Find the lending record with this lending_id
-                { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+                { _id: lending_id },
+                { $pull: { requests: { borrower_id } } },
+                { session }
             );
 
-            // Check if the lending request was found and updated
             if (lendingResult.nModified === 0) {
+                logger.warn(`Borrower not found in lending requests: ${borrower_id}`);
                 return res.status(404).json({ message: 'Borrower not found in lending requests' });
             }
 
+            await session.commitTransaction();
+            console.log("Transaction completed");
+            logger.info(`Transaction ${transaction_id} accepted, lender and borrower balances updated.`);
+            res.status(200).json({ message: 'Transaction accepted, conflicts removed.' });
         } else if (action === "rejected") {
-            await Transaction.findByIdAndDelete(transaction_id);
-            res.status(200).json({ message: 'Transaction rejected and removed.' });
+            await Transaction.findByIdAndDelete(transaction_id, { session });
+
             const lendingResult = await Lending.updateOne(
-                { _id: lending_id }, // Find the lending record with this lending_id
-                { $pull: { requests: { borrower_id } } } // Remove the borrower from the requests array
+                { _id: lending_id },
+                { $pull: { requests: { borrower_id } } },
+                { session }
             );
 
-            // Check if the lending request was found and updated
             if (lendingResult.nModified === 0) {
+                logger.warn(`Borrower not found in lending requests: ${borrower_id}`);
                 return res.status(404).json({ message: 'Borrower not found in lending requests' });
             }
+
+            await session.commitTransaction();
+            logger.info(`Transaction ${transaction_id} rejected and removed.`);
+            res.status(200).json({ message: 'Transaction rejected and removed.' });
         } else {
             res.status(400).json({ message: 'Invalid action.' });
         }
     } catch (error) {
-        console.error(error);
+        await session.abortTransaction();
+        logger.error(`Error processing transaction: ${error.message}`);
         res.status(500).json({ message: 'Server error' });
-    }
+    } finally {
+        session.endSession();
+    }
 };
 
 export const getTransactionHistory = async (req, res) => {
