@@ -120,7 +120,7 @@ const Repay = () => {
       <h2 className="text-2xl font-bold mb-5">Repayment Details</h2>
 
       {repayments.length > 0 ? (
-        <div className="h-[700px] px-10 overflow-y-auto">
+        <div className="h-[700px] px-10 overflow-y-auto scrollbar-hide">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {repayments.map((repayment) => (
               <Card key={repayment.id} className="mb-4">
