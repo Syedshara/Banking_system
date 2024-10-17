@@ -24,13 +24,15 @@ const Notification = () => {
 
     return (
         <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-4xl">
-            <h2 className="text-2xl font-bold mb-5 text-center">Notifications</h2>
+            <h2 className="text-2xl font-bold mb-5">Notifications</h2>
 
             <div className="space-y-4">
                 {notifications.map((notification) => (
                     <Card key={notification.id} className="w-full p-2 shadow-lg bg-white rounded-lg">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-red-500">{notification.type}</h3>
+                            <h3 className={`font-semibold ${notification.type === 'Payment Reminder!'
+                                                ? 'text-red-600'
+                                                : 'text-green-600'}`}>{notification.type}</h3>
                             <span className="text-xs text-gray-500">{notification.date}</span>
                         </div>
                         <p className="text-gray-600 text-sm  ">{notification.message}</p>

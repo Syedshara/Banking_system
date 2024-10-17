@@ -107,7 +107,7 @@ const ViewBalance = () => {
                         <Button
                             type="button"
                             className="mx-auto mt-6 font-bold"
-                            gradientDuoTone="redToYellow"
+                            gradientDuoTone="greenToBlue"
                             onClick={() => setCurrentScreen(1)} 
                         >
                             Back
