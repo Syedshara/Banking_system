@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Modal } from 'flowbite-react';
-import bcryptjs from 'bcryptjs'; // Ensure this is installed and available
+import bcryptjs from 'bcryptjs';
 
 const Repay = () => {
   const [repayments, setRepayments] = useState([]);
@@ -30,14 +30,12 @@ const Repay = () => {
     const fetchRepayDetails = async () => {
       try {
         const userId = localStorage.getItem("user_id");
-        // Fetch data from your backend API
         const response = await fetch(`http://10.16.58.118:3000/users/getRepay/${userId}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
 
-        // Calculate the repayment details
         const calculatedRepayments = data.map((repayment) => {
           const { principalAmount, duration, interestRate, currentDate, dueDate } = repayment;
           const interestAmount = (principalAmount * duration * interestRate) / 100;
@@ -59,7 +57,6 @@ const Repay = () => {
     const newPinValues = [...pinValues];
     newPinValues[index] = value;
     setPinValues(newPinValues);
-    // Automatically focus next input
     if (value && index < 5) {
       document.getElementById(`pin-${index + 1}`).focus();
     }
@@ -85,12 +82,10 @@ const Repay = () => {
       return;
     }
 
-    // Call the API to process the repayment
     console.log(selectedRepayment);
     const payload = {
       id: selectedRepayment.id,
       amount: selectedRepayment.totalRepayAmount,
-      // Update with actual lending ID
     };
 
     try {
@@ -149,7 +144,6 @@ const Repay = () => {
         </div>
       )}
 
-      {/* Modal for PIN input */}
       {showPinModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
           <div className="bg-white p-5 rounded-lg shadow-lg w-full max-w-sm">

@@ -23,6 +23,7 @@ const Notification = () => {
 
         fetchNotifications();
     }, []);
+
     const handleFilterChange = (selectedFilter) => {
         setFilter(selectedFilter);
 
@@ -59,19 +60,25 @@ const Notification = () => {
             </div>
 
             <div className="space-y-4 max-h-[650px] px-10 scrollbar-hide overflow-y-auto">
-                {filteredNotifications.map((notification) => (
-                    <Card key={notification.id} className="w-full p-2 shadow-lg bg-white rounded-lg">
-                        <div className="flex justify-between items-center">
-                            <h3 className={`font-semibold ${notification.type === 'Payment Reminder!'
-                                ? 'text-red-600'
-                                : 'text-green-600'}`}>
-                                {notification.type}
-                            </h3>
-                            <span className="text-xs text-gray-500">{notification.date}</span>
-                        </div>
-                        <p className="text-gray-600 text-sm">{notification.message}</p>
-                    </Card>
-                ))}
+                {filteredNotifications.length > 0 ? (
+                    filteredNotifications.map((notification) => (
+                        <Card key={notification.id} className="w-full p-2 shadow-lg bg-white rounded-lg">
+                            <div className="flex justify-between items-center">
+                                <h3 className={`font-semibold ${notification.type === 'Payment Reminder!'
+                                    ? 'text-red-600'
+                                    : 'text-green-600'}`}>
+                                    {notification.type}
+                                </h3>
+                                <span className="text-xs text-gray-500">{notification.date}</span>
+                            </div>
+                            <p className="text-gray-600 text-sm">{notification.message}</p>
+                        </Card>
+                    ))
+                ) : (
+                    <div className="flex items-center justify-center h-[400px]">
+                        <p className="text-gray-600 text-lg font-semibold">No notifications found</p>
+                    </div>
+                )}
             </div>
         </div>
     );
