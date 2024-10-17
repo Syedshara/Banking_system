@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { HiDotsVertical } from 'react-icons/hi'; 
-import { Button } from 'flowbite-react'; 
-import 'react-toastify/dist/ReactToastify.css'; 
+import { HiDotsVertical } from 'react-icons/hi';
+import { Button } from 'flowbite-react';
+import 'react-toastify/dist/ReactToastify.css';
 
 const LendMoney = () => {
-    const [boxes, setBoxes] = useState([]); 
-    const [showForm, setShowForm] = useState(false); 
-    const [newBox, setNewBox] = useState({ amount: '', duration: '', min_interest: '', max_interest: '' }); 
-    const [showMenu, setShowMenu] = useState(null); 
-    const [editIndex, setEditIndex] = useState(null); 
+    const [boxes, setBoxes] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [newBox, setNewBox] = useState({ amount: '', duration: '', min_interest: '', max_interest: '' });
+    const [showMenu, setShowMenu] = useState(null);
+    const [editIndex, setEditIndex] = useState(null);
     const [errorMessage, setErrorMessage] = useState('');
-    const menuRef = useRef(null); 
+    const menuRef = useRef(null);
 
     const userId = localStorage.getItem("user_id");
 
@@ -32,7 +32,7 @@ const LendMoney = () => {
 
     const fetchBoxes = async () => {
         try {
-            const response = await fetch(`http://10.16.58.118:3000/lend/user/${userId}`);
+            const response = await fetch(`http://localhost:3000/lend/user/${userId}`);
             const data = await response.json();
             setBoxes(data);
         } catch (error) {
@@ -47,7 +47,7 @@ const LendMoney = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewBox({ ...newBox, [name]: value });
-        setErrorMessage(''); 
+        setErrorMessage('');
     };
 
     const validateInputs = () => {
@@ -73,24 +73,24 @@ const LendMoney = () => {
         if (minInt >= maxInt) {
             return "Minimum interest should be less than maximum interest.";
         }
-        return ""; 
+        return "";
     };
 
     const resetForm = () => {
-        setNewBox({ amount: '', duration: '', min_interest: '', max_interest: '' }); 
-        setErrorMessage(''); 
+        setNewBox({ amount: '', duration: '', min_interest: '', max_interest: '' });
+        setErrorMessage('');
     };
 
     const handleBack = () => {
         resetForm();
         setShowForm(false);
-        setEditIndex(null); 
+        setEditIndex(null);
     };
 
     const handleNext = async () => {
         const error = validateInputs();
         if (error) {
-            setErrorMessage(error); 
+            setErrorMessage(error);
             return;
         }
 
@@ -98,7 +98,7 @@ const LendMoney = () => {
 
         try {
             if (editIndex !== null) {
-                const updatedResponse = await fetch(`http://10.16.58.118:3000/lend/update/${boxes[editIndex]._id}`, {
+                const updatedResponse = await fetch(`http://localhost:3000/lend/update/${boxes[editIndex]._id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ const LendMoney = () => {
                     throw new Error('Failed to update box');
                 }
             } else {
-                const response = await fetch('http://10.16.58.118:3000/lend/create', {
+                const response = await fetch('http://localhost:3000/lend/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ const LendMoney = () => {
                 });
 
                 if (response.ok) {
-                    fetchBoxes(); 
+                    fetchBoxes();
                     alert('Lending box added successfully!');
                 } else {
                     throw new Error('Failed to add box');
@@ -133,8 +133,8 @@ const LendMoney = () => {
             }
 
             resetForm();
-            setShowForm(false); 
-            setEditIndex(null); 
+            setShowForm(false);
+            setEditIndex(null);
         } catch (error) {
             console.error('Error adding or updating box:', error);
             alert('Failed to add or update box. Please try again.');
@@ -142,26 +142,26 @@ const LendMoney = () => {
     };
 
     const handleAddNewBox = () => {
-        resetForm(); 
-        setShowForm(true); 
+        resetForm();
+        setShowForm(true);
     };
 
     const handleEdit = (index) => {
-        setNewBox(boxes[index]); 
+        setNewBox(boxes[index]);
         setEditIndex(index);
-        setShowForm(true); 
-        setShowMenu(null); 
+        setShowForm(true);
+        setShowMenu(null);
     };
 
     const handleDelete = async (index) => {
-        const boxId = boxes[index]._id; 
+        const boxId = boxes[index]._id;
         try {
-            const response = await fetch(`http://10.16.58.118:3000/lend/delete/${boxId}`, {
+            const response = await fetch(`http://localhost:3000/lend/delete/${boxId}`, {
                 method: 'DELETE',
             });
 
             if (response.ok) {
-                const updatedBoxes = boxes.filter((_, i) => i !== index); 
+                const updatedBoxes = boxes.filter((_, i) => i !== index);
                 setBoxes(updatedBoxes);
                 alert('Lending box deleted successfully!');
             } else {

@@ -1,28 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Modal } from 'flowbite-react';
-import bcryptjs from 'bcryptjs'; // Ensure this is installed and available
+import bcryptjs from 'bcryptjs';
 
 const Repay = () => {
   const [repayments, setRepayments] = useState([]);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinValues, setPinValues] = useState(Array(6).fill(''));
   const [selectedRepayment, setSelectedRepayment] = useState(null);
+  const [userData, setUserData] = useState({ name: "", upi_id: "" });
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    if (userId) {
+      fetch(`http://localhost:3000/users/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          setUserData({ name: data.name, upi_id: data.bank_details.pin });
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching user data:", error);
+          setLoading(false);
+        });
+    }
+  }, []);
 
   useEffect(() => {
     const fetchRepayDetails = async () => {
       try {
-        // Sample data for UI testing (replace this with actual API response)
-        const data = [
-          { id: 1, lenderName: 'John Doe', principalAmount: 10000, duration: 12, interestRate: 5 },
-          { id: 2, lenderName: 'Jane Smith', principalAmount: 5000, duration: 6, interestRate: 4 },
-          // Add more data here...
-        ];
+        const userId = localStorage.getItem("user_id");
+        // Fetch data from your backend API
+        const response = await fetch(`http://localhost:3000/users/getRepay/${userId}`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
 
         const calculatedRepayments = data.map((repayment) => {
-          const { principalAmount, duration, interestRate } = repayment;
+          const { principalAmount, duration, interestRate, currentDate, dueDate } = repayment;
           const interestAmount = (principalAmount * duration * interestRate) / 100;
           const totalRepayAmount = principalAmount + interestAmount;
-          return { ...repayment, interestAmount, totalRepayAmount };
+          const remainingDays = Math.ceil((new Date(dueDate) - new Date(currentDate)) / (1000 * 60 * 60 * 24));
+          return { ...repayment, interestAmount, totalRepayAmount, remainingDays };
         });
 
         setRepayments(calculatedRepayments);
@@ -38,7 +58,6 @@ const Repay = () => {
     const newPinValues = [...pinValues];
     newPinValues[index] = value;
     setPinValues(newPinValues);
-    // Automatically focus next input
     if (value && index < 5) {
       document.getElementById(`pin-${index + 1}`).focus();
     }
@@ -57,25 +76,21 @@ const Repay = () => {
 
   const validatePinAndProcess = async () => {
     const rpin = pinValues.join('');
-    const userPin = "hashed-pin"; // Replace with the actual hashed PIN
-    const isMatch = bcryptjs.compareSync(rpin, userPin);
+    const isMatch = bcryptjs.compareSync(rpin, userData.upi_id);
 
     if (!isMatch) {
       alert('Invalid PIN');
       return;
     }
 
-    // Call the API to process the repayment
+    console.log(selectedRepayment);
     const payload = {
-      transaction_id: selectedRepayment.id,
-      action: 'repay',
-      pin: rpin,
-      borrower_id: 'your-borrower-id',
-      lending_id: 'your-lending-id',
+      id: selectedRepayment.id,
+      amount: selectedRepayment.totalRepayAmount,
     };
 
     try {
-      const response = await fetch('http://10.16.58.118:3000/users/lending_status', {
+      const response = await fetch('http://localhost:3000/users/updatePay', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -101,7 +116,7 @@ const Repay = () => {
       <h2 className="text-2xl font-bold mb-5">Repayment Details</h2>
 
       {repayments.length > 0 ? (
-        <div className="h-[700px] px-10 overflow-y-auto">
+        <div className="h-[700px] px-10 overflow-y-auto scrollbar-hide">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {repayments.map((repayment) => (
               <Card key={repayment.id} className="mb-4">
@@ -111,7 +126,9 @@ const Repay = () => {
                     <p className="mt-2 text-gray-700">Principal Amount: ₹{repayment.principalAmount}</p>
                     <p className="text-gray-700">Interest Rate: {repayment.interestRate}%</p>
                     <p className="text-gray-700">Duration: {repayment.duration} months</p>
-                    <p className="text-gray-700">Due Time: - months</p>
+
+                    <p className="mt-2 text-gray-700">Due Date: {new Date(repayment.dueDate).toLocaleDateString()}</p>
+                    <p className="mt-2 text-gray-700">Remaining Days: {repayment.remainingDays} days</p>
                     <p className="mt-2 text-gray-900 font-semibold">Total Repay Amount: ₹{repayment.totalRepayAmount}</p>
                   </div>
                   <Button className="mt-4" gradientDuoTone='greenToBlue' onClick={() => handlePayNow(repayment)}>
@@ -128,7 +145,6 @@ const Repay = () => {
         </div>
       )}
 
-      {/* Modal for PIN input */}
       {showPinModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
           <div className="bg-white p-5 rounded-lg shadow-lg w-full max-w-sm">

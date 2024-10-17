@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Dropdown } from 'flowbite-react';
 
-
 const ViewTransactions = () => {
     const [transactions, setTransactions] = useState([]);
-    const [filter, setFilter] = useState('All'); 
+    const [filter, setFilter] = useState('All');
 
     useEffect(() => {
         const fetchTransactions = async () => {
             try {
                 const userId = localStorage.getItem('user_id');
-                const response = await fetch(`http://10.16.58.118:3000/users/transaction_history/${userId}`);
+                const response = await fetch(`http://localhost:3000/users/transaction_history/${userId}`);
                 const data = await response.json();
                 let filteredData = data.filter(transaction => transaction.status !== 'requested');
                 if (filter !== 'All') {
@@ -25,6 +24,15 @@ const ViewTransactions = () => {
 
         fetchTransactions();
     }, [filter]);
+
+    const formatDate = (timestamp) => {
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    };
 
     return (
         <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-4xl">
@@ -56,7 +64,7 @@ const ViewTransactions = () => {
                         {transactions.length > 0 ? (
                             transactions.map((transaction, index) => (
                                 <Table.Row key={transaction.id || index} className="bg-white hover:bg-gray-100">
-                                    <Table.Cell>{transaction.date}</Table.Cell>
+                                    <Table.Cell>{formatDate(transaction.date)}</Table.Cell>
                                     <Table.Cell>{transaction.name}</Table.Cell>
                                     <Table.Cell>
                                         <span
@@ -88,7 +96,6 @@ const ViewTransactions = () => {
                     </Table.Body>
                 </Table>
             </Card>
-
         </div>
     );
 };

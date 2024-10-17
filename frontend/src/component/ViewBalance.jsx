@@ -42,7 +42,7 @@ const ViewBalance = () => {
     useEffect(() => {
         const userId = localStorage.getItem("user_id");
         if (userId) {
-            fetch(`http://10.16.58.118:3000/users/${userId}`)
+            fetch(`http://localhost:3000/users/${userId}`)
                 .then(response => response.json())
                 .then(data => {
                     setBalance(data.bank_details.balance);
@@ -57,7 +57,7 @@ const ViewBalance = () => {
     }, []);
 
     return (
-        <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-3xl bg-slate-200">
+        <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-3xl">
             <h2 className="text-2xl text-center font-bold mb-4">View Balance</h2>
 
             {loading && <p>Loading...</p>}
@@ -102,13 +102,13 @@ const ViewBalance = () => {
                     <Card className="text-center">
                         <h3 className="text-xl font-semibold mb-3">Available Balance</h3>
                         <p className="text-2xl text-green-600 font-bold">
-                            {"₹" + balance.toLocaleString()} 
+                            {"₹" + balance.toLocaleString()}
                         </p>
                         <Button
                             type="button"
                             className="mx-auto mt-6 font-bold"
-                            gradientDuoTone="redToYellow"
-                            onClick={() => setCurrentScreen(1)} 
+                            gradientDuoTone="greenToBlue"
+                            onClick={() => setCurrentScreen(1)}
                         >
                             Back
                         </Button>

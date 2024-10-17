@@ -7,6 +7,8 @@ import logger from './logger.js';
 export const getuser = async (req, res, next) => {
     const userId = req.params.id;
 
+
+
     try {
         const user = await User.findById(userId);
 
@@ -197,10 +199,11 @@ export const getNotifications = async (req, res) => {
     try {
         const userId = req.params.id;
 
-        const transactions = await Transaction.find({ borrower_id: userId });
+        const transactions = await Transaction.find({ borrower_id: userId, transaction_status: "pending" });
+        const lenderTransactions = await Transaction.find({ lender_id: userId, transaction_status: "pending" });
 
         const currentDate = new Date();
-        console.log("Current Date: ", currentDate);
+        let notifications = [];
 
         for (const transaction of transactions) {
             const lending = await Lending.findById(transaction.lending_id);
@@ -225,16 +228,21 @@ export const getNotifications = async (req, res) => {
             const dueDate = new Date(updatedAtDate);
             dueDate.setMonth(dueDate.getMonth() + lending.duration);
 
-            const threeDaysFromNow = new Date(currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-            const notifications = [];
-            console.log(dueDate > currentDate);
+            // Calculate simple interest
+            const principal = lending.amount;
+            const rate = transaction.interest_rate; // Percentage
+            const duration = lending.duration / 12; // Convert months to years
+            const interest = (principal * rate * duration) / 100;
+            const totalAmount = principal + interest;
+
             if (dueDate > currentDate) {
                 notifications.push({
                     type: 'Payment Reminder!',
                     lender_name: lender.name,
-                    lender_amount: lending.amount,
-                    message: `Reminder: You have to pay  ₹${lending.amount} to ${lender.name} before ${dueDate.toISOString().split('T')[0]}.`,
-                    date: currentDate.toISOString().split('T')[0],
+                    lender_amount: totalAmount,
+                    interestRate: transaction.interest_rate,
+                    message: `Reminder: You have to pay ₹${totalAmount.toFixed(2)} to ${lender.name}  before ${dueDate.toISOString().split('T')[0]}.`,
+                    date: updatedAtDate.toISOString().split('T')[0],
                 });
             }
 
@@ -242,14 +250,68 @@ export const getNotifications = async (req, res) => {
                 notifications.push({
                     type: 'overdue_alert',
                     lender_name: lender.name,
-                    lender_amount: lending.amount,
-                    message: `Alert: You have an overdue payment of ₹${lending.amount} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
-                    date: currentDate.toISOString().split('T')[0],
+                    lender_amount: totalAmount,
+                    interestRate: transaction.interest_rate,
+                    message: `Alert: You have an overdue payment of ₹${totalAmount.toFixed(2)}  to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
+                    date: updatedAtDate.toISOString().split('T')[0],
                 });
             }
         }
 
-        console.log("Notifications: ", notifications);
+        for (const transaction of lenderTransactions) {
+            const lending = await Lending.findById(transaction.lending_id);
+
+            if (!lending) {
+                continue;
+            }
+
+            const updatedAtDate = new Date(transaction.updatedAt);
+
+            if (isNaN(updatedAtDate.getTime())) {
+                console.error("Invalid updatedAt date:", transaction.updatedAt);
+                continue;
+            }
+
+            const borrower = await User.findById(transaction.borrower_id);
+
+            if (!borrower) {
+                continue;
+            }
+
+            const dueDate = new Date(updatedAtDate);
+            dueDate.setMonth(dueDate.getMonth() + lending.duration);
+
+            // Calculate simple interest
+            const principal = lending.amount;
+            const rate = transaction.interest_rate; // Percentage
+            const duration = lending.duration / 12; // Convert months to years
+            const interest = (principal * rate * duration) / 100;
+            const totalAmount = principal + interest;
+
+            if (dueDate > currentDate) {
+                notifications.push({
+                    type: 'Amount to be received',
+                    borrower_name: borrower.name,
+                    borrower_amount: totalAmount,
+                    interestRate: transaction.interest_rate,
+                    message: `Reminder: ${borrower.name} has to pay you ₹${totalAmount.toFixed(2)} before ${dueDate.toISOString().split('T')[0]}.`,
+                    date: updatedAtDate.toISOString().split('T')[0],
+                });
+            }
+
+            if (dueDate < currentDate) {
+                notifications.push({
+                    type: 'overdue_alert',
+                    borrower_name: borrower.name,
+                    borrower_amount: totalAmount,
+                    interestRate: transaction.interest_rate,
+                    message: `Alert: ${borrower.name} has an overdue payment of ₹${totalAmount.toFixed(2)}  to you since ${dueDate.toISOString().split('T')[0]}.`,
+                    date: updatedAtDate.toISOString().split('T')[0],
+                });
+            }
+        }
+
+
 
         res.status(200).json(notifications);
     } catch (error) {
@@ -258,10 +320,9 @@ export const getNotifications = async (req, res) => {
     }
 };
 
-
 export const getRepay = async (req, res) => {
     try {
-        const { id } = req.params;  // Borrower ID
+        const { id } = req.params; // Borrower ID
 
         // Fetch all transactions related to this borrower
         const transactions = await Transaction.find({ borrower_id: id, transaction_status: "pending" });
@@ -269,47 +330,59 @@ export const getRepay = async (req, res) => {
             return res.status(404).json({ message: "No transactions found for this borrower." });
         }
 
-        // Fetch all pending lendings related to this borrower
-
-
         // Create an array to hold repay details
         const repayDetails = [];
-
+        const addMonths = (date, months) => {
+            const newDate = new Date(date);
+            for (let i = 0; i < months; i++) {  // Use 'let' instead of 'int'
+                newDate.setMonth(newDate.getMonth() + 1);
+            }
+            // This will log the number of months being added
+            return newDate;
+        };
         for (const transaction of transactions) {
             // Fetch lender details using lender_id from the transaction
-            const lender = await User.findById(transaction.lender_id); // Assuming you have a User model for lenders
+            const lender = await User.findById(transaction.lender_id);
+
+            console.log(transaction);
             if (!lender) {
                 return res.status(404).json({ message: "Lender not found." });
             }
 
-            // Helper function to add months to a Date object
-            const addMonths = (date, months) => {
-                const newDate = new Date(date);
-                newDate.setMonth(newDate.getMonth() + months);
-                return newDate;
-            };
+            const lending = await Lending.findById(transaction.lending_id);
+            console.log(lending);
+
+            const duration = lending.duration; // Duration can be any integer, e.g., 14
 
             // Calculate dueDate by adding the lender's duration (in months) to the transaction's createdAt date
-            const createdDate = new Date(transaction.createdAt);
-            const dueDate = addMonths(createdDate, lender.duration);  // Assuming duration is in months
+            const createdDate = new Date(transaction.createdAt); // Ensure this is a valid date
+            const dueDate = addMonths(createdDate, duration); // Use duration directly
+
+            // Ensure dueDate is a valid date
+            if (isNaN(dueDate.getTime())) {
+                return res.status(500).json({ message: "Invalid due date calculation." });
+            }
 
             // Calculate remaining time until due date
-            const currentDate = new Date();  // Current date
-            const remainingTime = dueDate.getTime() - currentDate.getTime();  // Difference in milliseconds
+            const currentDate = new Date();
+            const remainingTime = dueDate.getTime() - currentDate.getTime();
 
             // Convert remainingTime to days
             const remainingDays = Math.ceil(remainingTime / (1000 * 60 * 60 * 24));
 
             // Construct response data for each transaction
             repayDetails.push({
-                id: transaction.transaction_id,
+                id: transaction._id,
                 lenderName: lender.name,
+                duration: lending.duration,
                 principalAmount: transaction.amount,
                 interestRate: transaction.interest_rate,
+                currentDate,
+
+
+
                 dueDate: dueDate.toISOString().split('T')[0], // Format dueDate as YYYY-MM-DD
                 remainingDays: remainingDays > 0 ? remainingDays : 0,
-                // Ensure non-negative remaining days
-
             });
         }
 
@@ -317,11 +390,9 @@ export const getRepay = async (req, res) => {
         res.status(200).json(repayDetails);
     } catch (error) {
         console.error("Error fetching repay details:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ message: "Error fetching repay details.", error: error.message });
     }
 };
-
-
 export const updatePay = async (req, res) => {
     try {
         const { id, amount } = req.body; // Transaction ID and the payment amount
@@ -340,23 +411,24 @@ export const updatePay = async (req, res) => {
         }
 
         // Check if the borrower has enough balance to make the payment
-        if (borrower.balance < amount) {
+        if (borrower.bank_details.balance < amount) {
             return res.status(400).json({ message: "Insufficient balance for this transaction." });
         }
 
         // Update the lender's balance
-        lender.balance += amount; // Assuming there's a balance field in the User model
+        lender.bank_details.balance += amount; // Assuming there's a balance field in the User model
         await lender.save();
 
         // Update the borrower's balance
         if (borrower.balance - amount < 0) {
             return res.status(400).json({ message: "Insufficient balance for this transaction." });
         }
-        borrower.balance -= amount; // Assuming there's a balance field in the User model
+        borrower.bank_details.balance -= amount; // Assuming there's a balance field in the User model
         await borrower.save();
 
         // Update the transaction status to 'paid'
         transaction.transaction_status = "paid";
+        transaction.amount = amount;
         await transaction.save();
 
         // Send a success response
