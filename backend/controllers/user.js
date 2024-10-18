@@ -302,7 +302,6 @@ export const getNotifications = async (req, res) => {
             const dueDate = new Date(updatedAtDate);
             dueDate.setMonth(dueDate.getMonth() + lending.duration);
 
-            // Calculate simple interest
             const principal = lending.amount;
             const rate = transaction.interest_rate; // Percentage
             const duration = lending.duration / 12; // Convert months to years
