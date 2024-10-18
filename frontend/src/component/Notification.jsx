@@ -1,27 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Dropdown } from 'flowbite-react';
+import { io } from 'socket.io-client';
 
 const Notification = () => {
     const [notifications, setNotifications] = useState([]);
     const [filteredNotifications, setFilteredNotifications] = useState([]);
     const [filter, setFilter] = useState('All');
 
+    // Connect to the Socket.IO server
     useEffect(() => {
-        const fetchNotifications = async () => {
-            try {
-                const userId = localStorage.getItem('user_id');
-                const response = await fetch(`http://localhost:3000/users/notification/${userId}`);
-                const data = await response.json();
+        const socket = io.connect('http://localhost:3000'); // Adjust the URL as needed
 
-                console.log({ data });
-                setNotifications(data);
-                setFilteredNotifications(data);
-            } catch (error) {
-                console.error('Error fetching notifications:', error);
-            }
+        socket.on('connect', () => {
+            console.log('Socket connected'); // Log when connected
+        });
+
+        // Listen for notifications
+        socket.on('notification', (notification) => {
+            console.log('New notification received:', notification); // Log incoming notifications
+            fetchNotifications();
+        });
+
+        return () => {
+            socket.disconnect(); // Clean up on component unmount
         };
+    }, []);
 
-        fetchNotifications();
+    const fetchNotifications = async () => {
+        try {
+            const userId = localStorage.getItem('user_id');
+            const response = await fetch(`http://localhost:3000/users/notification/${userId}`);
+            const data = await response.json();
+
+            console.log({ data });
+            setNotifications(data);
+            setFilteredNotifications(data);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications(); // Fetch initial notifications
     }, []);
 
     const handleFilterChange = (selectedFilter) => {
@@ -48,11 +68,7 @@ const Notification = () => {
             <div className="flex justify-between items-center mb-5">
                 <h2 className="text-2xl font-bold">Notifications</h2>
 
-                <Dropdown
-                    label="Filters"
-                    inline={true}
-                    className="shadow p-2 rounded"
-                >
+                <Dropdown label="Filters" inline={true} className="shadow p-2 rounded">
                     <Dropdown.Item onClick={() => handleFilterChange('All')}>All</Dropdown.Item>
                     <Dropdown.Item onClick={() => handleFilterChange('Payment Reminders')}>Payment Reminders</Dropdown.Item>
                     <Dropdown.Item onClick={() => handleFilterChange('Amount to be Received')}>Amount to be Received</Dropdown.Item>
@@ -64,9 +80,7 @@ const Notification = () => {
                     filteredNotifications.map((notification) => (
                         <Card key={notification.id} className="w-full p-2 shadow-lg bg-white rounded-lg">
                             <div className="flex justify-between items-center">
-                                <h3 className={`font-semibold ${notification.type === 'Payment Reminder!'
-                                    ? 'text-red-600'
-                                    : 'text-green-600'}`}>
+                                <h3 className={`font-semibold ${notification.type === 'Payment Reminder!' ? 'text-red-600' : 'text-green-600'}`}>
                                     {notification.type}
                                 </h3>
                                 <span className="text-xs text-gray-500">{notification.date}</span>

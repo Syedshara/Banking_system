@@ -1,8 +1,27 @@
 import { Button, Card } from 'flowbite-react';
 import React, { useEffect, useState } from 'react';
 import bcryptjs from 'bcryptjs';
+import { io } from 'socket.io-client';
 
 const Main = () => {
+    useEffect(() => {
+        const socket = io.connect('http://localhost:3000'); // Adjust the URL as needed
+
+        socket.on('connect', () => {
+            console.log('Socket connected'); // Log when connected
+        });
+
+        // Listen for notifications
+        socket.on('request', (request) => {
+            console.log('New request received:', request); // Log incoming notifications
+            fetchBorrowers();
+            fetchLenders();
+        });
+
+        return () => {
+            socket.disconnect(); // Clean up on component unmount
+        };
+    }, []);
     const [borrowers, setBorrowers] = useState([]);
     useEffect(() => {
         const userId = localStorage.getItem("user_id");
@@ -26,63 +45,62 @@ const Main = () => {
     const [loading, setLoading] = useState(true);
     const [lenders, setLenders] = useState([]);
     const [activeTab, setActiveTab] = useState('borrowers');
+    const fetchBorrowers = async () => {
+        const userId = localStorage.getItem('user_id');
+        if (!userId) {
+            console.error('User ID not found in local storage.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/users/lending_requests/${userId}`);
+            const data = await response.json();
+
+            const formattedBorrowers = data.map((item) => ({
+                id: item.transaction_id,
+                name: item.borrower_name,
+                amount: item.amount,
+                interestRate: item.interest_rate,
+                lending_id: item.lending_id,
+                borrower_id: item.borrower_id,
+                duration: item.duration,
+            }));
+            setBorrowers(formattedBorrowers);
+        } catch (error) {
+            console.error('Error fetching borrowers:', error);
+        }
+    };
+    const fetchLenders = async () => {
+        const userId = localStorage.getItem('user_id');
+        if (!userId) {
+            console.error('User ID not found in local storage.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/borrow/requested_transactions/${userId}`);
+            const data = await response.json();
+
+
+            const formattedLenders = data.map((transaction) => ({
+                id: transaction.transactionId,
+                lenderName: transaction.lenderName,
+                lenderID: transaction.lenderID,
+                lendingId: transaction.lending_id,
+                amount: transaction.amount,
+                interestRate: transaction.interestRate,
+                duration: transaction.duration,
+            }));
+            setLenders(formattedLenders);
+        } catch (error) {
+            console.error('Error fetching lenders:', error);
+        }
+    };
+
     useEffect(() => {
-        const fetchBorrowers = async () => {
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                console.error('User ID not found in local storage.');
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://localhost:3000/users/lending_requests/${userId}`);
-                const data = await response.json();
-
-                const formattedBorrowers = data.map((item) => ({
-                    id: item.transaction_id,
-                    name: item.borrower_name,
-                    amount: item.amount,
-                    interestRate: item.interest_rate,
-                    lending_id: item.lending_id,
-                    borrower_id: item.borrower_id,
-                    duration: item.duration,
-                }));
-                setBorrowers(formattedBorrowers);
-            } catch (error) {
-                console.error('Error fetching borrowers:', error);
-            }
-        };
-
         fetchBorrowers();
     }, []);
     useEffect(() => {
-        const fetchLenders = async () => {
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                console.error('User ID not found in local storage.');
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://localhost:3000/borrow/requested_transactions/${userId}`);
-                const data = await response.json();
-
-
-                const formattedLenders = data.map((transaction) => ({
-                    id: transaction.transactionId,
-                    lenderName: transaction.lenderName,
-                    lenderID: transaction.lenderID,
-                    lendingId: transaction.lending_id,
-                    amount: transaction.amount,
-                    interestRate: transaction.interestRate,
-                    duration: transaction.duration,
-                }));
-                setLenders(formattedLenders);
-            } catch (error) {
-                console.error('Error fetching lenders:', error);
-            }
-        };
-
         fetchLenders();
     }, []);
     const handleAcceptRequest = async (request, actionType) => {
@@ -300,19 +318,19 @@ const Main = () => {
                             <Card key={borrower.id} className="shadow-lg py-5 pt-5 h-80">
                                 <div className="flex items-center gap-3 mb-3">
                                     <p className="text-lg text-nowrap font-semibold">Borrower Name:</p>
-                                    <p className="text-md">{borrower.name}</p>
+                                    <p className="text-md text-nowrap">{borrower.name}</p>
                                 </div>
                                 <div className="flex items-center gap-6 mb-3">
-                                    <p className="text-lg font-semibold">Amount:</p>
-                                    <p className="text-md">₹{borrower.amount}</p>
+                                    <p className="text-lg text-nowrap font-semibold">Amount:</p>
+                                    <p className="text-md text-nowrap">₹{borrower.amount}</p>
                                 </div>
                                 <div className="flex items-center gap-6 mb-3">
-                                    <p className="text-lg font-semibold">Interest Rate:</p>
-                                    <p className="text-md">{borrower.interestRate}%</p>
+                                    <p className="text-lg text-nowrap font-semibold">Interest Rate:</p>
+                                    <p className="text-md text-nowrap">{borrower.interestRate}%</p>
                                 </div>
                                 <div className="flex items-center gap-6 mb-3">
-                                    <p className="text-lg font-semibold">Duration :</p>
-                                    <p className="text-md">{borrower.duration} months</p>
+                                    <p className="text-lg font-semibold text-nowrap">Duration :</p>
+                                    <p className="text-md text-nowrap">{borrower.duration} months</p>
                                 </div>
                                 <div className="flex justify-between">
                                     <Button color="green" onClick={() => handleAcceptRequest(borrower, 'accepted')}>
@@ -332,23 +350,23 @@ const Main = () => {
                         lenders.map((lender) => (
                             <Card key={lender.id} className="p-4 shadow-lg pt-5 h-80">
                                 <div className="flex items-center gap-3 mb-3">
-                                    <p className="text-lg font-semibold">Lender Name:</p>
-                                    <p className="text-md">{lender.lenderName}</p>
+                                    <p className="text-lg text-nowrap font-semibold">Lender Name:</p>
+                                    <p className="text-md text-nowrap">{lender.lenderName}</p>
                                 </div>
 
                                 <div className="flex items-center gap-6 mb-3">
-                                    <p className="text-lg font-semibold">Amount:</p>
-                                    <p className="text-md">₹{lender.amount}</p>
+                                    <p className="text-lg text-nowrap font-semibold">Amount:</p>
+                                    <p className="text-md text-nowrap">₹{lender.amount}</p>
                                 </div>
 
                                 <div className="flex items-center gap-6 mb-3">
-                                    <p className="text-lg font-semibold">Interest Rate:</p>
+                                    <p className="text-lg text-nowrap font-semibold">Interest Rate:</p>
                                     <p className="text-md">{lender.interestRate}%</p>
                                 </div>
 
                                 <div className="flex items-center gap-3 mb-3">
-                                    <p className="text-lg font-semibold">Duration :</p>
-                                    <p className="text-md">{lender.duration} months</p>
+                                    <p className="text-lg text-nowrap font-semibold">Duration :</p>
+                                    <p className="text-md text-nowrap">{lender.duration} months</p>
                                 </div>
 
                                 <Button color="red" onClick={() => handleWithdraw(lender)}>

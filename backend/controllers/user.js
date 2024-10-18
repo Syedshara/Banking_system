@@ -1,9 +1,11 @@
+// controller/user.js
 import User from '../models/user.js';
 import bcryptjs from "bcryptjs";
 import Transaction from '../models/transaction.js';
 import Lending from '../models/lending.js';
 import logger from './logger.js';
-
+import { emitNotification, emitHistory } from '../index.js'; // Import emitNotification
+import History from '../models/history.js';
 export const getuser = async (req, res, next) => {
     const userId = req.params.id;
 
@@ -62,32 +64,32 @@ export const getLendingRequests = async (req, res) => {
     }
 };
 
+
+
+
 export const actionOnLendingStatus = async (req, res) => {
-    const session = await Transaction.startSession(); // Start session for 2PC
-    session.startTransaction();
 
     try {
         const { transaction_id, action, lending_id, borrower_id } = req.body;
 
-        const transaction = await Transaction.findById(transaction_id).session(session);
+        const transaction = await Transaction.findById(transaction_id);
+
         if (!transaction) {
-            logger.error(`Transaction not found: ${transaction_id}`);
             return res.status(404).json({ message: 'Transaction not found' });
         }
 
         if (action === "accepted") {
             await Transaction.deleteMany(
                 { borrower_id: transaction.borrower_id, amount: transaction.amount, _id: { $ne: transaction_id } },
-                { session }
             );
 
-            const lender = await User.findById(transaction.lender_id).session(session);
+            const lender = await User.findById(transaction.lender_id)
             if (!lender) {
                 logger.error(`Lender not found: ${transaction.lender_id}`);
                 return res.status(404).json({ message: 'Lender not found' });
             }
 
-            const borrower = await User.findById(transaction.borrower_id).session(session);
+            const borrower = await User.findById(transaction.borrower_id);
             if (!borrower) {
                 logger.error(`Borrower not found: ${transaction.borrower_id}`);
                 return res.status(404).json({ message: 'Borrower not found' });
@@ -95,67 +97,86 @@ export const actionOnLendingStatus = async (req, res) => {
 
             if (lender.bank_details.balance < transaction.amount) {
                 logger.error(`Insufficient balance for lender ID: ${lender._id}`);
-                return res.status(400).json({ message: 'Insufficient balance.' });
+                return res.status(400).json({ message: 'Insufficient balance.', transaction: transaction });
             }
 
             lender.bank_details.balance -= transaction.amount;
-            await lender.save({ session });
+            await lender.save();
 
             borrower.bank_details.balance += transaction.amount;
-            await borrower.save({ session });
+            await borrower.save();
 
             transaction.transaction_status = "pending";
-            await transaction.save({ session });
+            await transaction.save();
 
-            const lendingResult = await Lending.updateOne(
+
+            const lending = await Lending.findById(transaction.lending_id);
+
+
+            const history = new History({
+
+                lender_id: transaction.lender_id,
+                borrower_id: transaction.borrower_id,
+                amount: transaction.amount,
+                interest_rate: transaction.interest_rate,
+                pay_method: "paid"
+
+            });
+            await history.save();
+
+            emitHistory({
+                message: "history updated"
+            })
+
+            // Emit notification here
+            emitNotification({
+                type: 'Payment Reminder!',
+                message: `Transaction ${transaction_id} accepted.`,
+                userId: borrower_id,
+            });
+            await Lending.updateOne(
                 { _id: lending_id },
                 { $pull: { requests: { borrower_id } } },
-                { session }
+
             );
 
-            if (lendingResult.nModified === 0) {
-                logger.warn(`Borrower not found in lending requests: ${borrower_id}`);
-                return res.status(404).json({ message: 'Borrower not found in lending requests' });
-            }
 
-            await session.commitTransaction();
-            console.log("Transaction completed");
-            logger.info(`Transaction ${transaction_id} accepted, lender and borrower balances updated.`);
-            res.status(200).json({ message: 'Transaction accepted, conflicts removed.' });
+            logger.info(`Transaction ${transaction_id} accepted.`);
+            res.status(200).json({ message: 'Transaction accepted.' });
         } else if (action === "rejected") {
-            await Transaction.findByIdAndDelete(transaction_id, { session });
+            await Transaction.findByIdAndDelete(transaction_id,);
 
-            const lendingResult = await Lending.updateOne(
+            await Lending.updateOne(
                 { _id: lending_id },
                 { $pull: { requests: { borrower_id } } },
-                { session }
+
             );
+            console.log("emitted");
 
-            if (lendingResult.nModified === 0) {
-                logger.warn(`Borrower not found in lending requests: ${borrower_id}`);
-                return res.status(404).json({ message: 'Borrower not found in lending requests' });
-            }
+            // Emit notification here
+            emitNotification({
+                type: 'Transaction Rejected',
+                message: `Transaction ${transaction_id} rejected.`,
+                userId: borrower_id,
+            });
 
-            await session.commitTransaction();
-            logger.info(`Transaction ${transaction_id} rejected and removed.`);
-            res.status(200).json({ message: 'Transaction rejected and removed.' });
+
+            logger.info(`Transaction ${transaction_id} rejected.`);
+            res.status(200).json({ message: 'Transaction rejected.' });
         } else {
             res.status(400).json({ message: 'Invalid action.' });
         }
     } catch (error) {
-        await session.abortTransaction();
         logger.error(`Error processing transaction: ${error.message}`);
         res.status(500).json({ message: 'Server error' });
-    } finally {
-        session.endSession();
-    }
+    }
 };
 
 export const getTransactionHistory = async (req, res) => {
     try {
         const userId = req.params.id;
 
-        const transactions = await Transaction.find({
+        const transactions = await History.find({
             $or: [
                 { lender_id: userId },
                 { borrower_id: userId }
@@ -183,8 +204,8 @@ export const getTransactionHistory = async (req, res) => {
             return {
                 date: transaction.createdAt,
                 name: isLender ? borrowerMap[transaction.borrower_id.toString()] : lenderMap[transaction.lender_id.toString()],
-                amount: transaction.amount,
-                status: transaction.transaction_status,
+                amount: transaction.amount.toFixed(2),
+                status: transaction.pay_method,
                 role: isLender ? 'lender' : 'borrower'
             };
         });
@@ -241,8 +262,8 @@ export const getNotifications = async (req, res) => {
                     lender_name: lender.name,
                     lender_amount: totalAmount,
                     interestRate: transaction.interest_rate,
-                    message: `Reminder: You have to pay ₹${totalAmount.toFixed(2)} to ${lender.name}  before ${dueDate.toISOString().split('T')[0]}.`,
-                    date: updatedAtDate.toISOString().split('T')[0],
+                    message: `Reminder: You have to pay ₹${totalAmount.toFixed(2)} to ${lender.name} before ${dueDate.toISOString().split('T')[0]}.`,
+                    date: `${updatedAtDate.toLocaleDateString()} ${updatedAtDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, // Format date without seconds
                 });
             }
 
@@ -252,8 +273,8 @@ export const getNotifications = async (req, res) => {
                     lender_name: lender.name,
                     lender_amount: totalAmount,
                     interestRate: transaction.interest_rate,
-                    message: `Alert: You have an overdue payment of ₹${totalAmount.toFixed(2)}  to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
-                    date: updatedAtDate.toISOString().split('T')[0],
+                    message: `Alert: You have an overdue payment of ₹${totalAmount.toFixed(2)} to ${lender.name} since ${dueDate.toISOString().split('T')[0]}.`,
+                    date: `${updatedAtDate.toLocaleDateString()} ${updatedAtDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, // Format date without seconds
                 });
             }
         }
@@ -295,7 +316,7 @@ export const getNotifications = async (req, res) => {
                     borrower_amount: totalAmount,
                     interestRate: transaction.interest_rate,
                     message: `Reminder: ${borrower.name} has to pay you ₹${totalAmount.toFixed(2)} before ${dueDate.toISOString().split('T')[0]}.`,
-                    date: updatedAtDate.toISOString().split('T')[0],
+                    date: `${updatedAtDate.toLocaleDateString()} ${updatedAtDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, // Format date without seconds
                 });
             }
 
@@ -305,13 +326,11 @@ export const getNotifications = async (req, res) => {
                     borrower_name: borrower.name,
                     borrower_amount: totalAmount,
                     interestRate: transaction.interest_rate,
-                    message: `Alert: ${borrower.name} has an overdue payment of ₹${totalAmount.toFixed(2)}  to you since ${dueDate.toISOString().split('T')[0]}.`,
-                    date: updatedAtDate.toISOString().split('T')[0],
+                    message: `Alert: ${borrower.name} has an overdue payment of ₹${totalAmount.toFixed(2)} to you since ${dueDate.toISOString().split('T')[0]}.`,
+                    date: `${updatedAtDate.toLocaleDateString()} ${updatedAtDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, // Format date without seconds
                 });
             }
         }
-
-
 
         res.status(200).json(notifications);
     } catch (error) {
@@ -319,6 +338,7 @@ export const getNotifications = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 export const getRepay = async (req, res) => {
     try {
@@ -430,6 +450,29 @@ export const updatePay = async (req, res) => {
         transaction.transaction_status = "paid";
         transaction.amount = amount;
         await transaction.save();
+        const lending = await Lending.findById(transaction.lending_id);
+
+        const history = new History({
+
+            lender_id: transaction.borrower_id,
+            borrower_id: transaction.lender_id,
+            amount: transaction.amount,
+            interest_rate: transaction.interest_rate,
+            pay_method: "recieved"
+
+        });
+        await history.save();
+
+        emitHistory({
+            message: "history updated"
+        })
+
+        console.log("emitted");
+        emitNotification({
+
+            message: `paided.`,
+
+        });
 
         // Send a success response
         res.status(200).json({ message: "Payment successful.", transaction });

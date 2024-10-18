@@ -2,7 +2,7 @@ import { Avatar, Dropdown, Navbar } from "flowbite-react";
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import img from '../assets/profile/user.png';
-import { MdNotificationsActive } from "react-icons/md";
+
 
 const Nav = () => {
     const [userData, setUserData] = useState({ name: "", upi_id: "" });
@@ -27,7 +27,7 @@ const Nav = () => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem("user_id");
+        localStorage.removeItem('user_id');
         navigate('/');
     };
 

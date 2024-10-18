@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Alert, Button, Label, TextInput } from 'flowbite-react';
 import { useNavigate } from "react-router-dom";
 import img from '../assets/Login/img.jpg';
+import { io } from 'socket.io-client';
 
 const Login = () => {
     const [upiId, setUpiId] = useState("");
@@ -10,15 +11,20 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const navigate = useNavigate();
+
     const validateUpiId = (upiId) => /^[a-zA-Z0-9]+@[a-zA-Z0-9]+$/.test(upiId);
     const validatePin = (pin) => pin.join("").length === 6;
+
+
+
     const handleLogin = async (e) => {
         e.preventDefault();
-        setErrorMessage("");
+        setErrorMessage(""); // Clear previous errors
         setLoading(true);
 
         let valid = true;
 
+        // Validation for UPI ID and PIN
         if (!upiId || !validateUpiId(upiId)) {
             setErrorMessage("Invalid UPI ID. Format should be like: example@upi.");
             valid = false;
@@ -49,7 +55,8 @@ const Login = () => {
             if (response.ok) {
                 console.log("Login successful with UPI ID:", data.userId);
                 localStorage.setItem("user_id", data.userId);
-                navigate("/main?tag=home");
+                navigate("/main?tag=home");// Call login function to check and establish socket connection
+
             } else {
                 setErrorMessage(data.error || "Login failed. Please try again.");
             }

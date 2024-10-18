@@ -6,6 +6,7 @@ import Entry from "./pages/Entry";
 import DashBoard from "./pages/DashBoard";
 import Nav from "./component/Nav";
 
+
 function ProtectedRoute({ children }) {
   const userId = localStorage.getItem("user_id");
   if (!userId) {
@@ -39,6 +40,7 @@ function AppContent() {
 }
 
 function App() {
+
   return (
     <BrowserRouter>
       <AppContent />

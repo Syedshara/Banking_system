@@ -1,13 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Modal } from 'flowbite-react';
 import bcryptjs from 'bcryptjs';
+import { io } from 'socket.io-client';
 
 const Repay = () => {
+
+  useEffect(() => {
+    const socket = io.connect('http://localhost:3000'); // Adjust the URL as needed
+
+    socket.on('connect', () => {
+      console.log('Socket connected'); // Log when connected
+    });
+
+    // Listen for notifications
+    socket.on('history', (history) => {
+      console.log('New history received:', history); // Log incoming notifications
+      fetchRepayDetails();
+    });
+
+    return () => {
+      socket.disconnect(); // Clean up on component unmount
+    };
+  }, []);
+
+
   const [repayments, setRepayments] = useState([]);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinValues, setPinValues] = useState(Array(6).fill(''));
   const [selectedRepayment, setSelectedRepayment] = useState(null);
   const [userData, setUserData] = useState({ name: "", upi_id: "" });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
@@ -25,34 +47,37 @@ const Repay = () => {
         });
     }
   }, []);
+  const fetchRepayDetails = async () => {
+    try {
+      const userId = localStorage.getItem("user_id");
+      // Fetch data from your backend API
+      const response = await fetch(`http://localhost:3000/users/getRepay/${userId}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+
+      const calculatedRepayments = data.map((repayment) => {
+        const { principalAmount, duration, interestRate, currentDate, dueDate } = repayment;
+        const interestAmount = (principalAmount * (duration / 12) * interestRate) / 100;
+        const totalRepayAmount = principalAmount + interestAmount;
+        const remainingDays = Math.ceil((new Date(dueDate) - new Date(currentDate)) / (1000 * 60 * 60 * 24));
+        return { ...repayment, interestAmount, totalRepayAmount, remainingDays };
+      });
+
+      setRepayments(calculatedRepayments);
+    } catch (error) {
+      console.error('Error fetching repayment details:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchRepayDetails = async () => {
-      try {
-        const userId = localStorage.getItem("user_id");
-        // Fetch data from your backend API
-        const response = await fetch(`http://localhost:3000/users/getRepay/${userId}`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
 
-        const calculatedRepayments = data.map((repayment) => {
-          const { principalAmount, duration, interestRate, currentDate, dueDate } = repayment;
-          const interestAmount = (principalAmount * duration * interestRate) / 100;
-          const totalRepayAmount = principalAmount + interestAmount;
-          const remainingDays = Math.ceil((new Date(dueDate) - new Date(currentDate)) / (1000 * 60 * 60 * 24));
-          return { ...repayment, interestAmount, totalRepayAmount, remainingDays };
-        });
-
-        setRepayments(calculatedRepayments);
-      } catch (error) {
-        console.error('Error fetching repayment details:', error);
-      }
-    };
 
     fetchRepayDetails();
+
   }, []);
+  console.log(repayments);
 
   const handlePinChange = (index, value) => {
     const newPinValues = [...pinValues];
@@ -129,7 +154,7 @@ const Repay = () => {
 
                     <p className="mt-2 text-gray-700">Due Date: {new Date(repayment.dueDate).toLocaleDateString()}</p>
                     <p className="mt-2 text-gray-700">Remaining Days: {repayment.remainingDays} days</p>
-                    <p className="mt-2 text-gray-900 font-semibold">Total Repay Amount: ₹{repayment.totalRepayAmount}</p>
+                    <p className="mt-2 text-gray-900 font-semibold">Total Repay Amount: ₹{repayment.totalRepayAmount.toFixed(2)}</p>
                   </div>
                   <Button className="mt-4" gradientDuoTone='greenToBlue' onClick={() => handlePayNow(repayment)}>
                     Pay Now

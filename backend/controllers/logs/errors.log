@@ -1,3 +1,17 @@
 2024-10-17T09:19:09.482Z [ERROR]: Error processing transaction: Transaction numbers are only allowed on a replica set member or mongos
 2024-10-17T09:21:30.926Z [ERROR]: Transaction not found: 6710d68d284d2cdc0d0243c3
 2024-10-17T09:23:13.559Z [ERROR]: Transaction not found: 6710d782284d2cdc0d02443d
+2024-10-18T09:08:12.533Z [ERROR]: Error processing transaction: Transaction numbers are only allowed on a replica set member or mongos
+2024-10-18T09:11:35.064Z [ERROR]: Error processing transaction: Transaction numbers are only allowed on a replica set member or mongos
+2024-10-18T09:12:01.900Z [ERROR]: Error processing transaction: Transaction numbers are only allowed on a replica set member or mongos
+2024-10-18T12:08:47.820Z [ERROR]: Error processing transaction: Transaction numbers are only allowed on a replica set member or mongos
+2024-10-18T12:36:57.536Z [ERROR]: Error processing transaction: connection <monitor> to 10.16.49.151:27017 timed out
+2024-10-18T13:05:06.902Z [ERROR]: Insufficient balance for lender ID: 670e7274f5b95a0405f21d3b
+2024-10-18T13:08:03.106Z [ERROR]: Insufficient balance for lender ID: 670e7274f5b95a0405f21d3b
+2024-10-18T13:08:35.698Z [ERROR]: Insufficient balance for lender ID: 670e7274f5b95a0405f21d3b
+2024-10-18T13:08:55.339Z [ERROR]: Insufficient balance for lender ID: 670e7274f5b95a0405f21d3b
+2024-10-18T13:10:16.886Z [ERROR]: Insufficient balance for lender ID: 670e7274f5b95a0405f21d3b
+2024-10-18T13:10:46.191Z [ERROR]: Insufficient balance for lender ID: 670e7274f5b95a0405f21d3b
+2024-10-18T13:13:15.309Z [ERROR]: Insufficient balance for lender ID: 670e7274f5b95a0405f21d3b
+2024-10-18T16:15:57.114Z [ERROR]: Error processing transaction: Transaction validation failed: transaction_status: Path `transaction_status` is required., lending_id: Path `lending_id` is required., interest_rate: Path `interest_rate` is required.
+2024-10-18T16:16:55.917Z [ERROR]: Error processing transaction: Transaction validation failed: transaction_status: Path `transaction_status` is required., lending_id: Path `lending_id` is required.

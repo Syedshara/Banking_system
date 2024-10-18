@@ -1,14 +1,15 @@
 import Lending from "../models/lending.js";
 import User from "../models/user.js";
 import Transaction from "../models/transaction.js"
+import { emitRequest } from '../index.js'; // Import emitNotification
 
-import mongoose from 'mongoose'; 
+import mongoose from 'mongoose';
 
 export const getLenders = async (req, res) => {
     try {
         const { money, interest, duration, id } = req.body;
 
-        const borrowerId = new mongoose.Types.ObjectId(id); 
+        const borrowerId = new mongoose.Types.ObjectId(id);
 
         if (!money) {
             return res.status(400).json({ message: "Money is required." });
@@ -19,7 +20,7 @@ export const getLenders = async (req, res) => {
 
         const query = {
             amount: { $gte: minAmount, $lte: maxAmount },
-            user_id: { $ne: borrowerId } 
+            user_id: { $ne: borrowerId }
         };
 
         if (interest) {
@@ -49,7 +50,7 @@ export const getLenders = async (req, res) => {
                     min_interest: lender.min_interest,
                     duration: lender.duration,
                     user_name: user ? user.name : 'Balan',
-                    has_requested: hasRequested 
+                    has_requested: hasRequested
                 };
             })
         );
@@ -79,9 +80,13 @@ export const addRequest = async (req, res) => {
             { $addToSet: { requests: { borrower_id, status: 'requested' } } },
             { new: true }
         );
+        emitRequest({
+            "message": "request added "
+        })
+
         res.status(201).json({ message: 'Lender requested successfully.', transaction });
     } catch (error) {
-        console.error('Error adding request:', error); 
+        console.error('Error adding request:', error);
         res.status(500).json({ message: error.message });
     }
 
@@ -89,7 +94,7 @@ export const addRequest = async (req, res) => {
 }
 export const getRequestedTransactions = async (req, res) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
         const transactions = await Transaction.find({ borrower_id: id, transaction_status: "requested" });
         const results = [];
         for (const transaction of transactions) {
@@ -98,7 +103,7 @@ export const getRequestedTransactions = async (req, res) => {
                 const lender = await User.findById(lending.user_id);
                 if (lender) {
                     results.push({
-                        transactionId: transaction._id, 
+                        transactionId: transaction._id,
                         lenderName: lender.name,
                         lenderID: transaction.lender_id,
                         lending_id: transaction.lending_id,
@@ -130,8 +135,8 @@ export const withdrawTransaction = async (req, res) => {
             return res.status(404).json({ message: 'Transaction not found' });
         }
         const lendingResult = await Lending.updateOne(
-            { _id: lending_id }, 
-            { $pull: { requests: { borrower_id } } } 
+            { _id: lending_id },
+            { $pull: { requests: { borrower_id } } }
         );
 
         if (lendingResult.nModified === 0) {
