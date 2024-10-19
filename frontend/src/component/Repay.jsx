@@ -137,7 +137,7 @@ const Repay = () => {
   };
 
   return (
-    <div className="p-5 w-full mx-auto mt-5 mb-5 px-10 max-w-6xl">
+    <div className="p-5 w-full mx-auto mt-5 mb-5 px-10 max-w-xl">
       <h2 className="text-2xl font-bold mb-5">Repayment Details</h2>
 
       {repayments.length > 0 ? (

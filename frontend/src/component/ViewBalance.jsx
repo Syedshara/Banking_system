@@ -57,7 +57,7 @@ const ViewBalance = () => {
     }, []);
 
     return (
-        <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-3xl">
+        <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-xl">
             <h2 className="text-2xl text-center font-bold mb-4">View Balance</h2>
 
             {loading && <p>Loading...</p>}

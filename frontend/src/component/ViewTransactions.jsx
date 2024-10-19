@@ -62,7 +62,7 @@ const ViewTransactions = () => {
     };
 
     return (
-        <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-4xl">
+        <div className="p-5 w-full mx-auto mt-5 mb-5 max-w-xl">
             <div className="flex justify-between items-center mb-10">
                 <h2 className="text-2xl font-bold">View Transaction History</h2>
 
