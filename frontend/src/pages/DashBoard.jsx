@@ -9,7 +9,7 @@ import LendMoney from '../component/LendMoney';
 import BorrowMoney from '../component/BorrowMoney';
 import Notification from '../component/Notification';
 import Main from '../component/Main';
-
+// sdvds
 const DashBoard = () => {
     const location = useLocation();
     const [tag, setTag] = useState("");
@@ -17,7 +17,7 @@ const DashBoard = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const currentTag = params.get('tag');
-        setTag(currentTag || ""); 
+        setTag(currentTag || "");
     }, [location.search]);
 
     return (
